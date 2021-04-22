@@ -1,0 +1,406 @@
+###############################################################################
+#                      IoT Edge Daemon configuration
+###############################################################################
+#
+# This file configures the IoT Edge daemon. The daemon must be restarted to
+# pick up any configuration changes.
+#
+# Note - this file is yaml. Learn more here: http://yaml.org/refcard.html
+#
+###############################################################################
+
+###############################################################################
+# Provisioning mode and settings
+###############################################################################
+#
+# Configures the identity provisioning mode of the daemon.
+#
+# Supported modes:
+#     manual   - Using an IoT Hub connection string or
+#                an X.509 identity certificate
+#     dps      - Using DPS for provisioning
+#     external - The device has been provisioned externally.
+#                Uses an external provisioning endpoint to get device specific information.
+#
+# Manual provisioning with an IoT Hub connection string (SharedAccessKey authentication only)
+#     device_connection_string - The Edge device connection string.
+#                                Eg "HostName=<hub-name>.azure-devices.net;DeviceId=<device-id>;SharedAccessKey=<key>
+#
+# Manual provisioning with X.509 identity certificate authentication
+#     iothub_hostname - The Azure Iot Hub hostname.
+#                       Eg <hub-name>.azure-devices.net
+#     device_id       - The Edge device ID.
+#     identity_cert   - Path of the file containing the Edge device identity certificate.
+#                       The value must be specified as a "file" URI.
+#                       Eg "file:///var/secrets/device-id.pem"
+#     identity_pk     - Path of the file containing the private key of
+#                       the Edge device identity certificate.
+#                       The value must be specified as a "file" URI.
+#                       Eg "file:///var/secrets/device-id.key.pem"
+#
+# DPS provisioning with TPM attestation
+#     scope_id        - The DPS instance's ID scope
+#     registration_id - The registration ID of this device in DPS.
+#                       For more information regarding DPS registration IDs,
+#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
+#
+# DPS provisioning with symmetric key attestation
+#     scope_id        - The DPS instance's ID scope
+#     registration_id - The registration ID of this device in DPS.
+#                       For more information regarding DPS registration IDs,
+#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
+#
+# DPS provisioning with symmetric key attestation
+#     scope_id        - The DPS instance's ID scope
+#     registration_id - The registration ID of this device in DPS.
+#                       For more information regarding DPS registration IDs,
+#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
+#     symmetric_key   - The device-specific symmetric key.
+#
+# DPS provisioning with X.509 identity certificate attestation
+#     scope_id        - The DPS instance's ID scope
+#     registration_id - The registration ID of this device in DPS.
+#                       This value is optional. If not specified,
+#                       the common name of the identity certificate will be used
+#                       as the registration ID.
+#                       For more information regarding DPS registration IDs,
+#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
+#     identity_cert   - Path of the file containing the Edge device identity certificate.
+#                       The value must be specified as a "file" URI.
+#                       Eg "file:///var/secrets/device-id.pem"
+#     identity_pk     - Path of the file containing the private key of
+#                       the Edge device identity certificate.
+#                       The value must be specified as a "file" URI.
+#                       Eg "file:///var/secrets/device-id.key.pem"
+#
+# External provisioning
+#     endpoint - Required. Value of the endpoint used to retrieve device specific
+#                information such as its IoT hub connection information.
+#
+# Miscellaneous settings
+#     always_reprovision_on_startup
+#                            - Optional, defaults to true.
+#
+#                              When true, the daemon attempts to reach out to Azure
+#                              on every startup to reprovision this device and
+#                              fetch its latest provisioning state.
+#                              If the daemon is unable to reach Azure, it will attempt to
+#                              restore the backup of a previous successful reprovisioning
+#                              and use that. If this backup is also not available,
+#                              the daemon will exit and retry provisioning when it's restarted.
+#
+#                              When set to false, the daemon prefers to use the provisioning backup
+#                              first, and only reaches out to Azure if the backup does not exist.
+#
+#                              Note that some provisioning methods like DPS with TPM attestation
+#                              are always considered to be "new" device registrations, and so will
+#                              trigger all existing modules to be stopped, removed and recreated.
+#                              If this is undesirable, consider setting this setting to false.
+#                              The downside is that if the device *is* reprovisioned in Azure,
+#                              the daemon will not notice it even if it's restarted.
+#                              Consider also setting the `dynamic_reprovisioning` setting below
+#                              to `true` to resolve this.
+#
+#                              This setting is only meaningful for DPS provisioning methods.
+#                              For manual provisioning, the device registration is static,
+#                              so there is no reprovisioning that would be disruptive to modules
+#                              in the way described above.
+#
+#     dynamic_reprovisioning - Optional, defaults to false.
+#
+#                              Setting this flag to true opts in to
+#                              the dynamic re-provisioning feature.
+#                              IoT Edge will detect situations where the device
+#                              appears to have been reprovisioned in the cloud
+#                              (by monitoring its own IoT Hub connection for certain errors),
+#                              and respond by shutting itself and all Edge modules down.
+#                              The next time the daemon starts up, it will attempt
+#                              to reprovision this device with Azure to receive
+#                              the new IoT Hub provisioning information.
+#
+#                              When using external provisioning, the daemon
+#                              will also notify the external provisioning endpoint
+#                              about the re-provisioning event before shutting down.
+#
+###############################################################################
+
+# Manual provisioning with an IoT Hub connection string (SharedAccessKey authentication only)
+provisioning:
+  source: "manual"
+  device_connection_string: "<ADD DEVICE CONNECTION STRING HERE>"
+  dynamic_reprovisioning: false
+
+# Manual provisioning with X.509 identity certificate authentication
+# provisioning:
+#   source: "manual"
+#   authentication:
+#     method: "x509"
+#     iothub_hostname: "<REQUIRED IOTHUB HOSTNAME>"
+#     device_id: "<REQUIRED DEVICE ID PROVISIONED IN IOTHUB>"
+#     identity_cert: "<REQUIRED URI TO DEVICE IDENTITY CERTIFICATE>"
+#     identity_pk: "<REQUIRED URI TO DEVICE IDENTITY PRIVATE KEY>"
+#   dynamic_reprovisioning: false
+
+# DPS provisioning with TPM attestation
+# provisioning:
+#   source: "dps"
+#   global_endpoint: "https://global.azure-devices-provisioning.net"
+#   scope_id: "<REQUIRED SCOPE>"
+#   attestation:
+#     method: "tpm"
+#     registration_id: "<REQUIRED REGISTRATION ID>"
+#   always_reprovision_on_startup: true
+#   dynamic_reprovisioning: false
+
+# DPS provisioning with symmetric key attestation
+# provisioning:
+#   source: "dps"
+#   global_endpoint: "https://global.azure-devices-provisioning.net"
+#   scope_id: "<REQUIRED SCOPE>"
+#   attestation:
+#     method: "symmetric_key"
+#     registration_id: "<REQUIRED REGISTRATION ID>"
+#     symmetric_key: "<REQUIRED SYMMETRIC KEY>"
+#   always_reprovision_on_startup: true
+#   dynamic_reprovisioning: false
+
+# DPS provisioning with X.509 identity certificate attestation
+# provisioning:
+#   source: "dps"
+#   global_endpoint: "https://global.azure-devices-provisioning.net"
+#   scope_id: "<REQUIRED SCOPE>"
+#   attestation:
+#     method: "x509"
+#     registration_id: "<REQUIRED REGISTRATION ID>"
+#     identity_cert: "<REQUIRED URI TO DEVICE IDENTITY CERTIFICATE>"
+#     identity_pk: "<REQUIRED URI TO DEVICE IDENTITY PRIVATE KEY>"
+#   always_reprovision_on_startup: true
+#   dynamic_reprovisioning: false
+
+# External provisioning
+# provisioning:
+#   source: "external"
+#   endpoint: "http://localhost:9999"
+#   dynamic_reprovisioning: false
+
+###############################################################################
+# Certificate settings
+###############################################################################
+#
+# Configures the certificates required to operate the IoT Edge runtime
+# as a gateway, which enables external leaf devices to securely
+# communicate with the Edge Hub.
+#
+# If these values are not specified, the certificates
+# will be auto generated by the daemon. This is useful for quickstart scenarios
+# but is not intended for production environments.
+#
+# Settings:
+#     device_ca_cert   - Path of the file containing the device CA certificate and its chain.
+#                        The value must be specified as a "file" URI.
+#                        Eg "file:///var/secrets/device-ca.pem"
+#     device_ca_pk     - Path of the file containing the private key of the device CA certificate.
+#                        The value must be specified as a "file" URI.
+#                        Eg "file:///var/secrets/device-ca.key.pem"
+#     trusted_ca_certs - Path of the file containing the containing
+#                        all the trusted CA certificates required for Edge module communication.
+#                        Edge modules and leaf devices use the certificates in this file to trust
+#                        the server certificate of the Edge Hub, so this file must contain
+#                        at least the device CA certificate specified in `device_ca_cert` above.
+#                        The value must be specified as a "file" URI.
+#                        Eg "file:///var/secrets/trusted-cas.pem"
+#     auto_generated_ca_lifetime_days -
+#                        The lifetime of the auto-generated workload CA certificate.
+#                        If device_ca_cert and device_ca_pk have not been set (quickstart mode),
+#                        then this is also used for the lifetime of
+#                        the auto-generated device CA certificate.
+#                        Defaults to 90 days.
+#
+###############################################################################
+
+# certificates:
+#   device_ca_cert: "<ADD URI TO DEVICE CA CERTIFICATE HERE>"
+#   device_ca_pk: "<ADD URI TO DEVICE CA PRIVATE KEY HERE>"
+#   trusted_ca_certs: "<ADD URI TO TRUSTED CA CERTIFICATES HERE>"
+#   auto_generated_ca_lifetime_days: 90
+
+###############################################################################
+# Edge Agent module spec
+###############################################################################
+#
+# Configures the initial Edge Agent module.
+#
+# The daemon uses this definition to bootstrap the system. The Edge Agent can
+# then update itself based on the Edge Agent module definition present in the
+# deployment in IoT Hub.
+#
+# Settings:
+#     name     - name of the edge agent module. Expected to be "edgeAgent".
+#     type     - type of module. Always "docker".
+#     env      - Any environment variable that needs to be set for edge agent module.
+#     config   - type specific configuration for edge agent module.
+#       image  - (docker) Modules require a docker image tag.
+#       auth   - (docker) Modules may need authoriation to connect to container registry.
+#
+# Adding environment variables:
+# replace "env: {}" with
+#  env:
+#    key: "value"
+#
+# Adding container registry authorization:
+# replace "auth: {}" with
+#    auth:
+#      username: "username"
+#      password: "password"
+#      serveraddress: "serveraddress"
+#
+###############################################################################
+
+agent:
+  name: "edgeAgent"
+  type: "docker"
+  env: {}
+  config:
+    image: "mcr.microsoft.com/azureiotedge-agent:1.1"
+    auth: {}
+
+###############################################################################
+# Edge device hostname
+###############################################################################
+#
+# Configures the environment variable 'IOTEDGE_GATEWAYHOSTNAME' injected into
+# modules. Regardless of case the hostname is specified below, a lower case
+# value is used to configure the Edge Hub server hostname as well as the
+# environment variable specified above.
+#
+# It is important to note that when connecting downstream devices to the
+# Edge Hub that the lower case value of this hostname be used in the
+# 'GatewayHostName' field of the device's connection string URI.
+###############################################################################
+
+hostname: "<REQUIRED HOSTNAME>"
+
+###############################################################################
+# Watchdog settings
+###############################################################################
+#
+# The IoT edge daemon has a watchdog that periodically checks the health of the
+# Edge Agent module and restarts it if it's down.
+#
+# max_retries - Configures the number of retry attempts that the IoT edge daemon
+#               should make for failed operations before failing with a fatal error.
+#
+#               If this configuration is not specified, the daemon keeps retrying
+#               on errors and doesn't fail fatally.
+#
+#               On a fatal failure, the daemon returns an exit code which
+#               signifies the kind of error encountered. Currently, the following
+#               error codes are returned by the daemon -
+#
+#               150 - Invalid Device ID specified.
+#               151 - Invalid IoT hub configuration.
+#               152 - Invalid SAS token used to call IoT hub.
+#                     This could signal an invalid SAS key.
+#               1 - All other errors.
+###############################################################################
+
+#watchdog:
+#  max_retries: 2
+###############################################################################
+# Connect settings
+###############################################################################
+#
+#
+# Configures URIs used by clients of the management and workload APIs
+#     management_uri - used by the Edge Agent and 'iotedge' CLI to start,
+#                      stop, and manage modules
+#     workload_uri   - used by modules to retrieve tokens and certificates
+#
+# The following uri schemes are supported:
+#     http - connect over TCP
+#     unix - connect over Unix domain socket
+#
+###############################################################################
+
+connect:
+  management_uri: "unix:///var/run/iotedge/mgmt.sock"
+  workload_uri: "unix:///var/run/iotedge/workload.sock"
+
+###############################################################################
+# Listen settings
+###############################################################################
+#
+# Configures the listen addresses for the daemon.
+#     management_uri - used by the Edge Agent and 'iotedge' CLI to start,
+#                      stop, and manage modules
+#     workload_uri   - used by modules to retrieve tokens and certificates
+#
+# The following uri schemes are supported:
+#     http - listen over TCP
+#     unix - listen over Unix domain socket
+#     fd   - listen using systemd socket activation
+#
+# These values can be different from the connect URIs. For instance, when
+# using the fd:// scheme for systemd:
+#     listen address is fd://iotedge.workload,
+#     connect address is unix:///var/run/iotedge/workload.sock
+#
+###############################################################################
+
+listen:
+  management_uri: "fd://iotedge.mgmt.socket"
+  workload_uri: "fd://iotedge.socket"
+
+###############################################################################
+# Home Directory
+###############################################################################
+#
+# Configures the home directory for the daemon.
+#
+###############################################################################
+
+homedir: "/var/lib/iotedge"
+
+###############################################################################
+# Moby Container Runtime settings
+###############################################################################
+#
+# uri - configures the uri for the container runtime.
+# network - configures the network on which the containers will be created.
+#
+# Additional container network configuration such as enabling IPv6 networking
+# and providing the IPAM settings can be achieved by specifying the relevant
+# configuration in the network settings.
+#
+# network:
+#   name: "azure-iot-edge"
+#   ipv6: true
+#   ipam:
+#     config:
+#       -
+#           gateway: '172.18.0.1'
+#           subnet: '172.18.0.0/16'
+#           ip_range: '172.18.0.0/16'
+#       -
+#           gateway: '2021:ffff:e0:3b1:1::1'
+#           subnet: '2021:ffff:e0:3b1:1::/80'
+#           ip_range: '2021:ffff:e0:3b1:1::/80'
+###############################################################################
+
+moby_runtime:
+  uri: "unix:///var/run/docker.sock"
+  # network: "azure-iot-edge"
+  #
+  # network:
+  #   name: "azure-iot-edge"
+  #   ipv6: true
+  #   ipam:
+  #     config:
+  #       -
+  #           gateway: '172.18.0.1'
+  #           subnet: '172.18.0.0/16'
+  #           ip_range: '172.18.0.0/16'
+  #       -
+  #           gateway: '2021:ffff:e0:3b1:1::1'
+  #           subnet: '2021:ffff:e0:3b1:1::/80'
+  #           ip_range: '2021:ffff:e0:3b1:1::/80'

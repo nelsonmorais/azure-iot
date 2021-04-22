@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+#
+# NOTE: This script requires Docker to pull and push the the simulator image
+#
+
+# Login to ACR, see: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication
+echo -e ${cyan}Login to ACR${reset}
+az acr login --name $ACR_NAME
+ExitIfNotSucessfull
+
+# Pull / Tag / Push the azureiotedge simulated temperature sensor image from Microsoft ACR to this ACR
+echo -e ${cyan}Pull / Push the ${ACR_IMAGE_SIMULATOR} image from ${ACR_MSFT} to ${ACR_NAME}.${ACR_DOMAIN}${reset}
+#  - Pull image from Microsoft
+docker pull ${ACR_MSFT}/${ACR_IMAGE_SIMULATOR}
+# - Tag
+docker tag \
+    ${ACR_MSFT}/${ACR_IMAGE_SIMULATOR} \
+    ${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}
+# Push
+docker push ${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}
+# Remove the local images
+docker image remove ${ACR_MSFT}/${ACR_IMAGE_SIMULATOR}
+docker image remove ${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}
+ExitIfNotSucessfull

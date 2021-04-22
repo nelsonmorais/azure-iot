@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Virtual Networks configuration
+echo -e ${green}Virtual Networks configuration${reset}
+
+# Create the IT VNet with a default subnet
+echo -e ${cyan}Create the IT VNet with a default subnet${reset}
+az network vnet create \
+    --name $VNET_IT_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --address-prefixes $VNET_IT_ADDRESS_PREFIXES \
+    --subnet-name $VNET_IT_SUBNET_DEFAULT_NAME \
+    --subnet-prefixes $VNET_IT_SUBNET_DEFAULT_PREFIXES
+ExitIfNotSucessfull
+
+# Add a subnet on the IT VNet for the Bastion service
+echo -e ${cyan}Add a subnet on the IT VNet for the Bastion service${reset}
+az network vnet subnet create \
+    --name $VNET_IT_SUBNET_BASTION_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --address-prefixes $VNET_IT_SUBNET_BASTION_PREFIXES \
+    --vnet-name $VNET_IT_NAME
+ExitIfNotSucessfull
+
+# Create the OT VNet with a default subnet
+echo -e ${cyan}Create the OT VNet with a default subnet${reset}
+az network vnet create \
+    --name $VNET_OT_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --address-prefixes $VNET_OT_ADDRESS_PREFIXES \
+    --subnet-name $VNET_OT_SUBNET_DEFAULT_NAME \
+    --subnet-prefixes $VNET_OT_SUBNET_DEFAULT_PREFIXES
+ExitIfNotSucessfull
+
+# Configure Network Peering (both directions needed)
+echo -e ${cyan}Configure peering between the IT VNet and the OT VNet${reset}
+az network vnet peering create \
+    --name $VNET_PEERING_IT2OT \
+    --resource-group $RESOURCE_GROUP \
+    --vnet-name $VNET_IT_NAME \
+    --remote-vnet $VNET_OT_NAME \
+    --allow-vnet-access
+ExitIfNotSucessfull
+
+echo -e ${cyan}Configure peering between the OT VNet and the IT VNet${reset}
+az network vnet peering create \
+    --name $VNET_PEERING_OT2IT \
+    --resource-group $RESOURCE_GROUP \
+    --vnet-name $VNET_OT_NAME \
+    --remote-vnet $VNET_IT_NAME \
+    --allow-vnet-access
+ExitIfNotSucessfull

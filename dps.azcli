@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Azure Device Provisioning Service configuration
+echo -e ${green}Azure Device Provisioning Service configuration${reset}
+
+# Create the Azure Device Provisioning Service
+echo -e ${cyan}Create the Azure Device Provisioning Service${reset}
+az iot dps create \
+    --name $DPS_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --sku $DPS_SKU
+ExitIfNotSucessfull
+
+# Capture IoTHub Connection String (needed to link the IoTHub with the DPS)
+echo -e ${cyan}Capturing IoTHub Connection String${reset}
+iothub_connectionstring=$(GetIoTHubConnectionString $IOTHUB_NAME)
+ExitIfNotSucessfull
+
+# Create linked IoTHub
+echo -e ${cyan}Create $IOTHUB_NAME as a linked IoTHub${reset}
+az iot dps linked-hub create \
+    --connection-string $iothub_connectionstring \
+    --dps-name $DPS_NAME \
+    --location $LOCATION \
+    --resource-group $RESOURCE_GROUP
+ExitIfNotSucessfull
+
+# Generate the DPS Keys
+dps_enrollment_primary_key=$(CreateSymetricKeyBase64)
+dps_enrollment_secondary_key=$(CreateSymetricKeyBase64)
+
+# Create Enrollment Group
+echo -e ${cyan}Create Enrollment Group${reset}
+az iot dps enrollment-group create \
+     --dps-name $DPS_NAME \
+     --resource-group $RESOURCE_GROUP \
+     --edge-enabled $DPS_ENROLLMENT_EDGE_ENABLED \
+     --enrollment-id $DPS_ENROLLMENT_ID \
+     --primary-key $dps_enrollment_primary_key \
+     --secondary-key $dps_enrollment_secondary_key \
+     --initial-twin-tags "$DPS_ENROLLMENT_INITIAL_TWIN_TAGS"
+ExitIfNotSucessfull
+

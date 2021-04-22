@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Virtual Machine configuration to simulate Edge Device
+echo -e ${green}Virtual Machine configuration to simulate Edge Device${reset}
+
+# Create a NIC with a private IP address on the OT VNet
+echo -e ${cyan}Create a NIC with a private IP address on the OT VNet${reset}
+az network nic create \
+    --name $VM_EDGE_NIC_PRIVATE_IP_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_OT_SUBNET_DEFAULT_NAME \
+    --private-ip-address $VM_EDGE_NIC_PRIVATE_IP_ADDRESS \
+    --vnet-name $VNET_OT_NAME
+ExitIfNotSucessfull
+
+# Set the VM custom data to be used during the VM setup at first boot
+echo -e ${cyan}Set the VM custom data to be used during the VM setup at first boot${reset}
+scope_id=$(GetDPSScopeId $DPS_NAME)
+echo -e ${blue}DPS Scope_Id=$scope_id${reset}
+
+#  - get the device key
+device_key=$(CreateDeviceSymetricKeyBase64 $RESOURCE_GROUP $DPS_NAME $DPS_ENROLLMENT_ID $VM_EDGE_DEVICE_REGISTRATION_ID)
+echo -e ${blue}Device Symetric Key=$device_key${reset}
+
+#  - set the custom data
+custom_data=$(sed \
+    -e "s/\${SCOPE_ID}/$scope_id/g" \
+    -e "s/\${REGISTRATION_ID}/$VM_EDGE_DEVICE_REGISTRATION_ID/g" \
+    -e "s#\${SYMETRIC_KEY}#$device_key#g" \
+    -e "s/\${HOST_NAME}/$VM_EDGE_DEVICE_HOST_NAME/g" \
+    cloud-config/vm-edge-simulator-custom-data.txt)
+echo -e ${blue}$custom_data${reset}
+
+# Create the Virtual Machine for the Edge simulator on the OT VNet
+echo -e ${cyan}Create the Virtual Machine for the Edge simulator on the OT VNet${reset}
+az vm create \
+    --name $VM_EDGE_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --admin-password $VM_EDGE_ADMIN_PASS \
+    --admin-username $VM_EDGE_ADMIN_USER \
+    --authentication-type $VM_EDGE_AUTHENTICATION_TYPE \
+    --computer-name $VM_EDGE_COMPUTER_NAME \
+    --size $VM_EDGE_SIZE \
+    --image $VM_EDGE_IMAGE \
+    --os-disk-name $VM_EDGE_OS_DISK_NAME \
+    --subscription $SUBSCRIPTION \
+    --nics $VM_EDGE_NIC_PRIVATE_IP_NAME \
+    --custom-data "$custom_data"
+    # --attach-os-disk $VM_EDGE_OS_DISK_NAME \
+    # --os-disk-size-gb $VM_EDGE_OS_DISK_SIZE_GB \
+    # --subnet $VNET_OT_SUBNET_DEFAULT_NAME \
+    # --vnet-name $VNET_OT_NAME \
+    # --public-ip-address "" # $VM_EDGE_PUBLIC_IP_ADDRESS <= This variable is not working as expected
+    # [--accelerated-networking {false, true}] \
+    # [--asgs] \
+    # [--assign-identity] \
+    # [--attach-data-disks] \
+    # [--availability-set] \
+    # [--boot-diagnostics-storage] \
+    # [--data-disk-caching] \
+    # [--data-disk-encryption-sets] \
+    # [--data-disk-sizes-gb] \
+    # [--enable-agent {false, true}] \
+    # [--enable-auto-update {false, true}] \
+    # [--enable-hotpatching {false, true}] \
+    # [--encryption-at-host {false, true}] \
+    # [--ephemeral-os-disk {false, true}] \
+    # [--eviction-policy {Deallocate, Delete}] \
+    # [--generate-ssh-keys] \
+    # [--host] \
+    # [--host-group] \
+    # [--license-type {None, RHEL_BYOS, SLES_BYOS, Windows_Client, Windows_Server}] \
+    # [--location] \
+    # [--max-price] \
+    # [--no-wait] \
+    # [--nsg] \
+    # [--nsg-rule {NONE, RDP, SSH}] \
+    # [--os-disk-caching {None, ReadOnly, ReadWrite}] \
+    # [--os-disk-encryption-set] \
+    # [--os-type $VM_EDGE_OS_TYPE] \
+    # [--patch-mode] \
+    # [--plan-name] \
+    # [--plan-product] \
+    # [--plan-promotion-code] \
+    # [--plan-publisher] \
+    # [--ppg] \
+    # [--priority {Low, Regular, Spot}] \
+    # [--private-ip-address] \ 
+    # [--public-ip-address-allocation {dynamic, static}] \
+    # [--public-ip-address-dns-name] \
+    # [--public-ip-sku {Basic, Standard}] \
+    # [--role] \
+    # [--scope] \
+    # [--secrets] \
+    # [--specialized {false, true}] \
+    # [--ssh-dest-key-path] \
+    # [--ssh-key-name] \
+    # [--ssh-key-values] \
+    # [--storage-account] \
+    # [--storage-container-name] \
+    # [--storage-sku] \
+    # [--subnet-address-prefix] \
+    # [--tags] \
+    # [--ultra-ssd-enabled {false, true}] \
+    # [--use-unmanaged-disk] \
+    # [--validate] \
+    # [--vmss] \
+    # [--vnet-address-prefix] \
+    # [--workspace] \
+    # [--zone {1, 2, 3}]
+ExitIfNotSucessfull

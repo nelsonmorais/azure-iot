@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#
+# Main script to delete the Sandbox environment
+#
+
+# Login to Azure
+#az login
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Select the Subscription
+echo -e ${cyan}Select the Subscription${reset}
+az account set --subscription $SUBSCRIPTION
+az account show
+
+# Delete the Resource Group
+echo -e ${cyan}Delete the Resource Group${reset}
+az group delete --name $RESOURCE_GROUP --yes --no-wait

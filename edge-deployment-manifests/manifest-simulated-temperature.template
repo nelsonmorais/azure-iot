@@ -1,0 +1,27 @@
+{
+    "modulesContent": {
+        "$edgeAgent": {
+            "properties.desired.runtime.settings.registryCredentials.<ENTER ACR NAME HERE>": {
+                "address": "<ENTER ACR ADDRESS HERE>",
+                "username": "<ENTER ACR USERNAME HERE>",
+                "password": "<ENTER ACR PASSWORD HERE>"
+            },
+            "properties.desired.modules.simulated-temperature-sensor": {
+                "settings": {
+                    "image": "<ENTER SIMULATED TEMPERATURE SENSOR IMAGE HERE>",
+                    "createOptions": "{}"
+                },
+                "type": "docker",
+                "status": "running",
+                "restartPolicy": "always",
+                "version": "1.1"
+            }
+        },
+        "SimulatedTemperatureSensor": {
+            "properties.desired": {
+                "SendData": true,
+                "SendInterval": 5
+            }
+        }
+    }
+}

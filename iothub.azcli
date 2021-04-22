@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Azure IoTHub configuration
+echo -e ${green}Azure IoTHub configuration${reset}
+
+# Create the Azure IoTHub
+echo -e ${cyan}Create the Azure IoTHub${reset}
+az iot hub create \
+    --name $IOTHUB_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --sku $IOTHUB_SKU \
+    --retention-day $IOTHUB_RETENTION_DAY
+ExitIfNotSucessfull
+
+# Get the ACR password
+echo -e ${cyan}Get the ACR password${reset}
+password=$(GetACRPassword $RESOURCE_GROUP $ACR_NAME)
+ExitIfNotSucessfull
+
+# Use the manifest template of the system modules to copy to the desired manifest
+echo -e ${cyan}Use the manifest template of the system modules to copy to the desired manifest${reset}
+cp \
+    $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES_TEMPLATE \
+    $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES
+ExitIfNotSucessfull
+
+# Use the manifest template of the simulated temperature module to create a proper manifest
+echo -e ${cyan}Use the manifest template of the simulated temperature module to create a proper manifest${reset}
+sed \
+    -e "s#<ENTER ACR NAME HERE>#${ACR_NAME}#g" \
+    -e "s#\(.\"address\": \).*#\1\"${ACR_NAME}.${ACR_DOMAIN}\",#g" \
+    -e "s#\(.\"username\": \).*#\1\"${ACR_NAME}\",#g" \
+    -e "s#\(.\"password\": \).*#\1${password}#g" \
+    -e "s#\(.\"image\": \).*#\1\"${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}\",#g" \
+    $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SIMULATED_TEMPERATURE_TEMPLATE \
+    > $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SIMULATED_TEMPERATURE
+ExitIfNotSucessfull
+
+# Create the Edge Deployments 
+#  - System Modules - Normal
+echo -e "${cyan}Create the Edge Deployments (System [Normal], Simulated Temperature [Layered])${reset}"
+az iot edge deployment create \
+    --deployment-id $IOTHUB_EDGE_DEPLOYMENT_ID_SYSTEM_MODULES \
+    --hub-name $IOTHUB_NAME \
+    --content $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES \
+    --target-condition "$IOTHUB_EDGE_DEPLOYMENT_TARGET_CONDITION" \
+    --priority $IOTHUB_EDGE_DEPLOYMENT_PRIORITY_SYSTEM_MODULES
+ExitIfNotSucessfull
+#  - Simulated Temperature - Layered
+az iot edge deployment create \
+    --deployment-id $IOTHUB_EDGE_DEPLOYMENT_ID_SIMULATED_TEMPERATURE \
+    --hub-name $IOTHUB_NAME \
+    --content $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SIMULATED_TEMPERATURE \
+    --target-condition "$IOTHUB_EDGE_DEPLOYMENT_TARGET_CONDITION" \
+    --priority $IOTHUB_EDGE_DEPLOYMENT_PRIORITY_SIMULATED_TEMPERATURE \
+    --layered true
+ExitIfNotSucessfull

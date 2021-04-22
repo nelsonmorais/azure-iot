@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#
+# Main script to create a Sandbox of a very basic and hypotetical Industrial IoT envionment
+#
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Due to a bug on the Linux Kernel used by WSL2 (as of 2021-04-15), the date stops updating if the PC hibernates/sleeps, 
+#  the command below forces the date to update and avoids authentication errors on zome az cli commands
+# See reported issue on GitHub: https://github.com/microsoft/WSL/issues/5324
+sudo hwclock -s
+
+# Login to Azure
+#az login
+
+# Select the Subscription
+echo -e ${cyan}Select the Subscription${reset}
+az account set --subscription $SUBSCRIPTION
+ExitIfNotSucessfull
+az account show
+
+# Create the Resource Group
+echo -e ${cyan}Create the Resource Group${reset}
+az group create --name $RESOURCE_GROUP --location $LOCATION
+ExitIfNotSucessfull
+
+# (Tentative: VNET) - DONE
+. vnets.azcli
+
+# (Tentative: Bastion) (running in background as it takes a while to complete and we can proceed with other resources) - DONE
+. bastion.azcli > bastion.log &
+
+# ACR - DONE - Tentative: PRIVATE LINK
+. acr.azcli
+. acr-push-images.azcli
+
+# (Missed) Blob storage for IoTHub message routing and TSI
+
+# IoTHub - DONE - Tentative: PRIVATE LINK, Missed: MESSAGE ROUTING TO BLOB
+. iothub.azcli
+
+# DPS - DONE - Tentative: PRIVATE LINK
+. dps.azcli
+
+# VM (Edge Simulator) - DONE
+. vm-edge-simulator.azcli
+
+# TSI
+#. tsi.azcli
+
+# (Optional: ASA Cluster)
+#. asa.azcli
+
+# Check the bastion log and delete the file
+tail bastion.log --lines=+1 --follow

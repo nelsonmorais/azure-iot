@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Bastion configuration
+echo -e ${green}Bastion configuration${reset}
+
+# Create the Public IP address which is needed to create the Bastion service
+echo -e ${cyan}Create the Public IP address which is needed to create the Bastion service${reset}
+az network public-ip create \
+    --name $BASTION_PUBLIC_IP_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --sku $BASTION_PUBLIC_IP_SKU
+ExitIfNotSucessfull
+
+# Create the Bastion service. It can take up to 5 minutes to provision te service
+echo -e ${cyan}Create the Bastion service. It can take up to 5 minutes to provision the service${reset}
+az network bastion create \
+    --name $BASTION_NAME \
+    --public-ip-address $BASTION_PUBLIC_IP_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --vnet-name $VNET_IT_NAME
+ExitIfNotSucessfull

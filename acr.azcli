@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Azure Container Registry configuration
+echo -e ${green}Azure Container Registry configuration${reset}
+
+# Create the Azure Container Registry
+echo -e ${cyan}Create the Azure Container Registry${reset}
+az acr create \
+    --name $ACR_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --admin-enabled $ACR_ADMIN_ENABLED \
+    --sku $ACR_SKU
+ExitIfNotSucessfull

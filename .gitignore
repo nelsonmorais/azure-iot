@@ -1,0 +1,3 @@
+variables-local-only.azcli
+edge-deployment-manifests/*.json
+*.log
