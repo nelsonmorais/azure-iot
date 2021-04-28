@@ -20,7 +20,7 @@ az network public-ip create \
     --name $BASTION_PUBLIC_IP_NAME \
     --resource-group $RESOURCE_GROUP \
     --sku $BASTION_PUBLIC_IP_SKU
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Create the Bastion service. It can take up to 5 minutes to provision te service
 echo -e ${cyan}Create the Bastion service. It can take up to 5 minutes to provision the service${reset}
@@ -29,4 +29,4 @@ az network bastion create \
     --public-ip-address $BASTION_PUBLIC_IP_NAME \
     --resource-group $RESOURCE_GROUP \
     --vnet-name $VNET_IT_NAME
-ExitIfNotSucessfull
+ExitIfNotSuccessful

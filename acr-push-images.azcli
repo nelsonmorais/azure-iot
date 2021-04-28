@@ -18,7 +18,7 @@ EchoLocalVariables
 # Login to ACR, see: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication
 echo -e ${cyan}Login to ACR${reset}
 az acr login --name $ACR_NAME
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Pull / Tag / Push the azureiotedge simulated temperature sensor image from Microsoft ACR to this ACR
 echo -e ${cyan}Pull / Push the ${ACR_IMAGE_SIMULATOR} image from ${ACR_MSFT} to ${ACR_NAME}.${ACR_DOMAIN}${reset}
@@ -33,4 +33,4 @@ docker push ${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}
 # Remove the local images
 docker image remove ${ACR_MSFT}/${ACR_IMAGE_SIMULATOR}
 docker image remove ${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}
-ExitIfNotSucessfull
+ExitIfNotSuccessful

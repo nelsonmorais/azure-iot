@@ -21,4 +21,4 @@ az acr create \
     --resource-group $RESOURCE_GROUP \
     --admin-enabled $ACR_ADMIN_ENABLED \
     --sku $ACR_SKU
-ExitIfNotSucessfull
+ExitIfNotSuccessful

@@ -22,7 +22,7 @@ az network vnet create \
     --address-prefixes $VNET_IT_ADDRESS_PREFIXES \
     --subnet-name $VNET_IT_SUBNET_DEFAULT_NAME \
     --subnet-prefixes $VNET_IT_SUBNET_DEFAULT_PREFIXES
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Add a subnet on the IT VNet for the Bastion service
 echo -e ${cyan}Add a subnet on the IT VNet for the Bastion service${reset}
@@ -31,7 +31,7 @@ az network vnet subnet create \
     --resource-group $RESOURCE_GROUP \
     --address-prefixes $VNET_IT_SUBNET_BASTION_PREFIXES \
     --vnet-name $VNET_IT_NAME
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Create the OT VNet with a default subnet
 echo -e ${cyan}Create the OT VNet with a default subnet${reset}
@@ -41,7 +41,7 @@ az network vnet create \
     --address-prefixes $VNET_OT_ADDRESS_PREFIXES \
     --subnet-name $VNET_OT_SUBNET_DEFAULT_NAME \
     --subnet-prefixes $VNET_OT_SUBNET_DEFAULT_PREFIXES
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Configure Network Peering (both directions needed)
 echo -e ${cyan}Configure peering between the IT VNet and the OT VNet${reset}
@@ -51,7 +51,7 @@ az network vnet peering create \
     --vnet-name $VNET_IT_NAME \
     --remote-vnet $VNET_OT_NAME \
     --allow-vnet-access
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 echo -e ${cyan}Configure peering between the OT VNet and the IT VNet${reset}
 az network vnet peering create \
@@ -60,4 +60,4 @@ az network vnet peering create \
     --vnet-name $VNET_OT_NAME \
     --remote-vnet $VNET_IT_NAME \
     --allow-vnet-access
-ExitIfNotSucessfull
+ExitIfNotSuccessful

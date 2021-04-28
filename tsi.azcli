@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Time Series Insigts configuration
+echo -e ${green}Time Series Insigts configuration${reset}
+
+# Create a storage Account for Time Series Insigths
+echo -e ${cyan}Create a storage Account for Time Series Insigths${reset}
+az storage account create \
+    --name $TSI_STORAGE_ACCOUNT_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --sku $TSI_STORAGE_SKU \
+    --kind $TSI_STORAGE_KIND
+ExitIfNotSuccessful
+
+# Get the storage Account key
+echo -e ${cyan}Get the storage Account key${reset}
+tsi_storage_management_key=$(GetStorageKey $TSI_STORAGE_ACCOUNT_NAME)
+ExitIfNotSuccessful
+
+# Set the Time Series Insights storage configuration
+storage_configuration="account-name=${TSI_STORAGE_ACCOUNT_NAME} management-key=${tsi_storage_management_key}"
+
+# Create the Time Series Insights service
+#   For more details on TSI environment planning see: https://docs.microsoft.com/en-us/azure/time-series-insights/how-to-plan-your-environment
+echo -e ${cyan}Create the Time Series Insights service${reset}
+az tsi environment gen2 create \
+    --environment-name $TSI_ENVIRONMENT_NAME \
+    --id-properties $TSI_ID_PROPERTIES \
+    --location $LOCATION \
+    --resource-group $RESOURCE_GROUP \
+    --sku $TSI_SKU \
+    --storage-config $storage_configuration \
+    --warm-store-config $TSI_WARM_STORE_CONFIG
+ExitIfNotSuccessful
+
+# Create an IoT Hub Consumer Group for Time Series Insights
+echo -e ${cyan}Create an IoT Hub Consumer Group for Time Series Insights${reset}
+az iot hub consumer-group create \
+    --hub-name $IOTHUB_NAME \
+    --name $TSI_EVENT_SOURCE_IOTHUB_CONSUMER_GROUP_NAME
+ExitIfNotSuccessful
+
+# Get the IoT Hub Shared Access Key
+echo -e ${cyan}Get the IoT Hub Shared Access Key${reset}
+tsi_event_source_iothub_shared_access_key=$(GetIoTHubSharedAccessKey $IOTHUB_NAME $TSI_EVENT_SOURCE_IOTHUB_KEY_NAME)
+echo $tsi_event_source_iothub_shared_access_key
+ExitIfNotSuccessful
+
+# Get the IoT Hub Resource Id
+echo -e ${cyan}Get the IoT Hub Resource Id${reset}
+tsi_event_source_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
+ExitIfNotSuccessful
+
+# Add the IoT Hub as the Event source
+echo -e ${cyan}Add the IoT Hub as the Event source${reset}
+az tsi event-source iothub create \
+    --location $LOCATION \
+    --resource-group $RESOURCE_GROUP \
+    --consumer-group-name $TSI_EVENT_SOURCE_IOTHUB_CONSUMER_GROUP_NAME \
+    --environment-name $TSI_ENVIRONMENT_NAME \
+    --event-source-name $TSI_EVENT_SOURCE_NAME \
+    --event-source-resource-id $tsi_event_source_resource_id \
+    --iot-hub-name $IOTHUB_NAME \
+    --key-name $TSI_EVENT_SOURCE_IOTHUB_KEY_NAME \
+    --shared-access-key $tsi_event_source_iothub_shared_access_key
+    # --timestamp-property-name # <== Most certainly we want to specify the property that should be used for the timestamp (default is enqued time)
+ExitIfNotSuccessful

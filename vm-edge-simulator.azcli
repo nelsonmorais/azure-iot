@@ -22,7 +22,7 @@ az network nic create \
     --subnet $VNET_OT_SUBNET_DEFAULT_NAME \
     --private-ip-address $VM_EDGE_NIC_PRIVATE_IP_ADDRESS \
     --vnet-name $VNET_OT_NAME
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Set the VM custom data to be used during the VM setup at first boot
 echo -e ${cyan}Set the VM custom data to be used during the VM setup at first boot${reset}
@@ -119,4 +119,4 @@ az vm create \
     # [--vnet-address-prefix] \
     # [--workspace] \
     # [--zone {1, 2, 3}]
-ExitIfNotSucessfull
+ExitIfNotSuccessful

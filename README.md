@@ -14,13 +14,15 @@ The scripts will create the following resources:
 - 1 Resource group (resource group where all the resources will be created)
 - 2 VNets (IT and OT see details below)
 - 1 Bastion (to provide secure access to the VM of the simulated IoT Edge device)
-- [TODO: Storage Account(s) for IoT Hub Routing and TSI]
+- Storage Account(s) for
+  - IoT Hub (TODO: for Routing)
+  - TSI
 - 1 Azure Container Registry (to store the IoT Edge simulated temperature module)
   - Image azureiotedge-simulated-temperature-sensor:1.0 pushed to the ACR
 - 1 IoT Hub (to where the IoT Edge simulated deice will be registered)
 - 1 Device Provisioning Service (to provide an enrollment group from where the IoT Edge device will be provisioned)
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
-- [TODO: Time Series Insights]
+- Time Series Insights
 - [TODO: Azure Streaming Analytics Cluster]
 
 ## Pre-requisites:
@@ -55,11 +57,10 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
 - `acr.azcli`: Creates the Azure Container Registry
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
-- [TODO: `storage.azcli`]: Creates the storage account(s) needed for IoT Hub routing and TSI
 - `iothub.azcli`: Creates the Azure IoT Hub and configures the Edge deployments of the system and simulated temperature modules
 - `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up a Enrollment Group
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
-- [TODO: `tsi.azcli`]: Creates the Time Series Insigths
+- `tsi.azcli`: Creates the Time Series Insigths
 
 ## Other files details
 - `readme.md`: This file
@@ -97,9 +98,6 @@ Peered networks:
 
 # ==> TODO <==
 - Configure the simulated temperature module to send unlimited messages by setting the environment varaiable MessageCount = -1 (see: https://github.com/Azure/iotedge/blob/027a509549a248647ed41ca7fe1dc508771c8123/edge-modules/SimulatedTemperatureSensor/src/Program.cs)
-- Storage account for TSI 
-- TSI to show the SIMULATED TEMPERATURE / HUMIDITY data
-- Storage account for IoT Hub cold storage routing
 - IoT Hub route to cold storage
 - Private links for DPS, IoTHub, ACR. Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)
 - Azure Streaming Analytics cluster

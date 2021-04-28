@@ -26,13 +26,13 @@ sudo hwclock -s
 # Select the Subscription
 echo -e ${cyan}Select the Subscription${reset}
 az account set --subscription $SUBSCRIPTION
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 az account show
 
 # Create the Resource Group
 echo -e ${cyan}Create the Resource Group${reset}
 az group create --name $RESOURCE_GROUP --location $LOCATION
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # (Tentative: VNET) - DONE
 . vnets.azcli
@@ -43,8 +43,6 @@ ExitIfNotSucessfull
 # ACR - DONE - Tentative: PRIVATE LINK
 . acr.azcli
 . acr-push-images.azcli
-
-# (Missed) Blob storage for IoTHub message routing and TSI
 
 # IoTHub - DONE - Tentative: PRIVATE LINK, Missed: MESSAGE ROUTING TO BLOB
 . iothub.azcli

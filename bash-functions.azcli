@@ -14,7 +14,7 @@ ExitIfNoVariablesLocalOnlyFile() {
     fi
 }
 
-ExitIfNotSucessfull() {
+ExitIfNotSuccessful() {
     if [ $? -eq 0 ]; then
         echo -e ${green}Command completed successfully${reset}
     else
@@ -66,6 +66,24 @@ GetDPSScopeId() {
 }
 
 GetIoTHubConnectionString() {
-    iothub_name=$1  #IoTHub name
+    iothub_name=$1  # IoTHub name
     az iot hub connection-string show --hub-name $iothub_name | jq --raw-output '.connectionString'
+}
+
+GetIoTHubSharedAccessKey() {
+    iothub_name=$1  # IoTHub name
+    key_name=$2     # Key name
+    az iot hub policy list --hub-name $iothub_name | jq --raw-output --arg key_name "$key_name" '.[] | select(.keyName==$key_name).primaryKey'
+}
+
+GetIoTHubResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    iothub_name=$3     # IoT Hub name
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Devices/IotHubs/$iothub_name"
+}
+
+GetStorageKey() {
+    account_name=$1 # Storage Account name
+    az storage account keys list --account-name $account_name | jq --raw-output '.[0].value'
 }

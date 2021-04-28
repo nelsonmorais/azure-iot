@@ -14,6 +14,15 @@ EchoLocalVariables
 # Azure IoTHub configuration
 echo -e ${green}Azure IoTHub configuration${reset}
 
+# Create a storage Account for IoT Hub message routing
+echo -e ${cyan}Create a storage Account for IoT Hub message routing${reset}
+az storage account create \
+    --name $IOTHUB_STORAGE_ACCOUNT_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --sku $IOTHUB_STORAGE_SKU \
+    --kind $IOTHUB_STORAGE_KIND
+ExitIfNotSuccessful
+
 # Create the Azure IoTHub
 echo -e ${cyan}Create the Azure IoTHub${reset}
 az iot hub create \
@@ -21,19 +30,19 @@ az iot hub create \
     --resource-group $RESOURCE_GROUP \
     --sku $IOTHUB_SKU \
     --retention-day $IOTHUB_RETENTION_DAY
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Get the ACR password
 echo -e ${cyan}Get the ACR password${reset}
 password=$(GetACRPassword $RESOURCE_GROUP $ACR_NAME)
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Use the manifest template of the system modules to copy to the desired manifest
 echo -e ${cyan}Use the manifest template of the system modules to copy to the desired manifest${reset}
 cp \
     $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES_TEMPLATE \
     $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Use the manifest template of the simulated temperature module to create a proper manifest
 echo -e ${cyan}Use the manifest template of the simulated temperature module to create a proper manifest${reset}
@@ -45,7 +54,7 @@ sed \
     -e "s#\(.\"image\": \).*#\1\"${ACR_NAME}.${ACR_DOMAIN}/${ACR_IMAGE_SIMULATOR}\",#g" \
     $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SIMULATED_TEMPERATURE_TEMPLATE \
     > $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SIMULATED_TEMPERATURE
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Create the Edge Deployments 
 #  - System Modules - Normal
@@ -56,7 +65,7 @@ az iot edge deployment create \
     --content $IOTHUB_EDGE_DEPLOYMENT_FILEPATH_SYSTEM_MODULES \
     --target-condition "$IOTHUB_EDGE_DEPLOYMENT_TARGET_CONDITION" \
     --priority $IOTHUB_EDGE_DEPLOYMENT_PRIORITY_SYSTEM_MODULES
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 #  - Simulated Temperature - Layered
 az iot edge deployment create \
     --deployment-id $IOTHUB_EDGE_DEPLOYMENT_ID_SIMULATED_TEMPERATURE \
@@ -65,4 +74,4 @@ az iot edge deployment create \
     --target-condition "$IOTHUB_EDGE_DEPLOYMENT_TARGET_CONDITION" \
     --priority $IOTHUB_EDGE_DEPLOYMENT_PRIORITY_SIMULATED_TEMPERATURE \
     --layered true
-ExitIfNotSucessfull
+ExitIfNotSuccessful

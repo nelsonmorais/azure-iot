@@ -20,12 +20,12 @@ az iot dps create \
     --name $DPS_NAME \
     --resource-group $RESOURCE_GROUP \
     --sku $DPS_SKU
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Capture IoTHub Connection String (needed to link the IoTHub with the DPS)
 echo -e ${cyan}Capturing IoTHub Connection String${reset}
 iothub_connectionstring=$(GetIoTHubConnectionString $IOTHUB_NAME)
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Create linked IoTHub
 echo -e ${cyan}Create $IOTHUB_NAME as a linked IoTHub${reset}
@@ -34,7 +34,7 @@ az iot dps linked-hub create \
     --dps-name $DPS_NAME \
     --location $LOCATION \
     --resource-group $RESOURCE_GROUP
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
 # Generate the DPS Keys
 dps_enrollment_primary_key=$(CreateSymetricKeyBase64)
@@ -50,5 +50,5 @@ az iot dps enrollment-group create \
      --primary-key $dps_enrollment_primary_key \
      --secondary-key $dps_enrollment_secondary_key \
      --initial-twin-tags "$DPS_ENROLLMENT_INITIAL_TWIN_TAGS"
-ExitIfNotSucessfull
+ExitIfNotSuccessful
 
