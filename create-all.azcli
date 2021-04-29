@@ -34,30 +34,30 @@ echo -e ${cyan}Create the Resource Group${reset}
 az group create --name $RESOURCE_GROUP --location $LOCATION
 ExitIfNotSuccessful
 
-# (Tentative: VNET) - DONE
+# VNET - DONE
 . vnets.azcli
 
-# (Tentative: Bastion) (running in background as it takes a while to complete and we can proceed with other resources) - DONE
+# Bastion - DONE (running in background as it takes a while to complete and we can proceed with other resources)
 . bastion.azcli > bastion.log &
 
 # ACR - DONE - Tentative: PRIVATE LINK
 . acr.azcli
 . acr-push-images.azcli
 
-# IoTHub - DONE - Tentative: PRIVATE LINK, Missed: MESSAGE ROUTING TO BLOB
+# IoTHub - DONE - Tentative: PRIVATE LINK
 . iothub.azcli
 
 # DPS - DONE - Tentative: PRIVATE LINK
 . dps.azcli
 
+# TSI - DONE
+. tsi.azcli
+
 # VM (Edge Simulator) - DONE
 . vm-edge-simulator.azcli
-
-# TSI
-. tsi.azcli
 
 # (Optional: ASA Cluster)
 #. asa.azcli
 
-# Check the bastion log and delete the file
+# Check the bastion log
 tail bastion.log --lines=+1 --follow
