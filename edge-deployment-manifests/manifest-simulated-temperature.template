@@ -11,6 +11,11 @@
                     "image": "<ENTER SIMULATED TEMPERATURE SENSOR IMAGE HERE>",
                     "createOptions": "{}"
                 },
+                "env": {
+                    "MessageCount": {
+                        "value": -1
+                    }
+                },
                 "type": "docker",
                 "status": "running",
                 "restartPolicy": "always",
