@@ -118,3 +118,14 @@ az iot hub route create \
     --source $IOTHUB_ROUTE_SOURCE \
     --condition $IOTHUB_ROUTE_CONDITION
 ExitIfNotSuccessful
+
+# Create the Route to the built-in events Endpoint 
+echo -e ${cyan}Create the Route to the built-in events Endpoint${reset}
+az iot hub route create \
+    --resource-group $RESOURCE_GROUP \
+    --endpoint-name $IOTHUB_BUILTIN_ROUTING_ENDPOINT_NAME \
+    --hub-name $IOTHUB_NAME \
+    --name $IOTHUB_BUILTIN_ROUTE_NAME \
+    --source $IOTHUB_BUILTIN_ROUTE_SOURCE \
+    --condition $IOTHUB_BUILTIN_ROUTE_CONDITION
+ExitIfNotSuccessful
