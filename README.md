@@ -14,8 +14,8 @@ The scripts will create the following resources:
 - 1 Resource group (resource group where all the resources will be created)
 - 2 VNets (IT and OT see details below)
 - 1 Bastion (to provide secure access to the VM of the simulated IoT Edge device)
-- Storage Account(s) for
-  - IoT Hub (TODO: for Routing)
+- Storage Account(s) for:
+  - IoT Hub (for custom routing to cold storage)
   - TSI
 - 1 Azure Container Registry (to store the IoT Edge simulated temperature module)
   - Image azureiotedge-simulated-temperature-sensor:1.0 pushed to the ACR
@@ -57,10 +57,10 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
 - `acr.azcli`: Creates the Azure Container Registry
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
-- `iothub.azcli`: Creates the Azure IoT Hub and configures the Edge deployments of the system and simulated temperature modules
+- `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes
 - `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up a Enrollment Group
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
-- `tsi.azcli`: Creates the Time Series Insigths
+- `tsi.azcli`: Creates the Time Series Insigths, configures the IoT Hub consumer group for TSI and adds the IoT Hubs as an event source for TSI
 
 ## Other files details
 - `readme.md`: This file
@@ -72,6 +72,7 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
   - `manifest-system-modules.json`: Generated file from the manifest-system-modules.template, can be safely deleted and is excluded from git to avoid commiting any sensible information
 - `edge-deployment-manifests/`
   - `manifest-simulated-temperature.template`: Template file to be used to create the manifest-simulated-temperature.json file with the proper values
+    - Note that the module was configured to send an unlimited number of messages by setting the environment variable MessageCount = -1 (see: https://github.com/Azure/iotedge/blob/027a509549a248647ed41ca7fe1dc508771c8123/edge-modules/SimulatedTemperatureSensor/src/Program.cs)
   - `manifest-simulated-temperature.json`: Generated file from the manifest-simulated-temperature.template, can be safely deleted and is excluded from git to avoid commiting any sensible information
 - `reference-files\`
   - `install-iotedg.sh`: Script with the steps needed to install Azure IoT Edge daemon on a Lunix based device
@@ -97,9 +98,9 @@ Peered networks:
 - IT <-> OT
 
 # ==> TODO <==
-- Configure the simulated temperature module to send unlimited messages by setting the environment varaiable MessageCount = -1 (see: https://github.com/Azure/iotedge/blob/027a509549a248647ed41ca7fe1dc508771c8123/edge-modules/SimulatedTemperatureSensor/src/Program.cs)
-- IoT Hub route to cold storage
-- Private links for DPS, IoTHub, ACR. Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)
+- Private links for DPS, IoTHub, ACR. Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
+  - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
+  - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 - Azure Streaming Analytics cluster
 - [Optional] LogAnalytics and have diags configure on all servicies into it
-- [Optional] More than one VM as Edge device to get simulation data from multiple devices 
+- [Optional] More than one VM as Edge device to get simulation data from multiple devices

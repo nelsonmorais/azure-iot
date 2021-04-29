@@ -54,7 +54,7 @@ ExitIfNotSuccessful
 . vm-edge-simulator.azcli
 
 # TSI
-#. tsi.azcli
+. tsi.azcli
 
 # (Optional: ASA Cluster)
 #. asa.azcli

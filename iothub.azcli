@@ -14,15 +14,6 @@ EchoLocalVariables
 # Azure IoTHub configuration
 echo -e ${green}Azure IoTHub configuration${reset}
 
-# Create a storage Account for IoT Hub message routing
-echo -e ${cyan}Create a storage Account for IoT Hub message routing${reset}
-az storage account create \
-    --name $IOTHUB_STORAGE_ACCOUNT_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --sku $IOTHUB_STORAGE_SKU \
-    --kind $IOTHUB_STORAGE_KIND
-ExitIfNotSuccessful
-
 # Create the Azure IoTHub
 echo -e ${cyan}Create the Azure IoTHub${reset}
 az iot hub create \
@@ -31,6 +22,7 @@ az iot hub create \
     --sku $IOTHUB_SKU \
     --retention-day $IOTHUB_RETENTION_DAY
 ExitIfNotSuccessful
+
 
 # Get the ACR password
 echo -e ${cyan}Get the ACR password${reset}
@@ -74,4 +66,55 @@ az iot edge deployment create \
     --target-condition "$IOTHUB_EDGE_DEPLOYMENT_TARGET_CONDITION" \
     --priority $IOTHUB_EDGE_DEPLOYMENT_PRIORITY_SIMULATED_TEMPERATURE \
     --layered true
+ExitIfNotSuccessful
+
+
+# Create a storage Account for IoT Hub message routing
+echo -e ${cyan}Create a storage Account for IoT Hub message routing${reset}
+az storage account create \
+    --resource-group $RESOURCE_GROUP \
+    --name $IOTHUB_STORAGE_ACCOUNT_NAME \
+    --sku $IOTHUB_STORAGE_SKU \
+    --kind $IOTHUB_STORAGE_KIND
+ExitIfNotSuccessful
+
+# Create a storage Account container for IoT Hub message routing
+echo -e ${cyan}Create a storage Account container for IoT Hub message routing${reset}
+az storage container create \
+    --resource-group $RESOURCE_GROUP \
+    --account-name $IOTHUB_STORAGE_ACCOUNT_NAME \
+    --name $IOTHUB_ROUTING_CONTAINER_NAME \
+    --auth-mode $IOTHUB_STORAGE_CONTAINER_AUTH_MODE
+ExitIfNotSuccessful
+
+# Get the storage Account connection string
+echo -e ${cyan}Get the storage Account connection string${reset}
+connection_string=$(GetStorageConnectionString $IOTHUB_STORAGE_ACCOUNT_NAME)
+ExitIfNotSuccessful
+
+# Create the Routing Endpoint for the storage Account
+echo -e ${cyan}Create the Routing Endpoint for the storage Account${reset}
+az iot hub routing-endpoint create \
+    --endpoint-subscription-id $SUBSCRIPTION \
+    --resource-group $RESOURCE_GROUP \
+    --hub-name $IOTHUB_NAME \
+    --endpoint-resource-group $RESOURCE_GROUP \
+    --endpoint-name $IOTHUB_ROUTING_ENDPOINT_NAME \
+    --endpoint-type $IOTHUB_ROUTING_ENDPOINT_TYPE \
+    --auth-type $IOTHUB_ROUTING_AUTH_TYPE \
+    --container-name $IOTHUB_ROUTING_CONTAINER_NAME \
+    --encoding $IOTHUB_ROUTING_ENCODING \
+    --connection-string $connection_string
+    # [--file-name-format] # The file name format must contain {iothub}, {partition}, {YYYY}, {MM}, {DD}, {HH} and {mm} fields. All parameters are mandatory but can be reordered with or without delimiters.  Default: {iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}
+ExitIfNotSuccessful
+
+# Create the Route to the storage Account Routing Endpoint
+echo -e ${cyan}Create the Route to the storage Account Routing Endpoint${reset}
+az iot hub route create \
+    --resource-group $RESOURCE_GROUP \
+    --endpoint-name $IOTHUB_ROUTING_ENDPOINT_NAME \
+    --hub-name $IOTHUB_NAME \
+    --name $IOTHUB_ROUTE_NAME \
+    --source $IOTHUB_ROUTE_SOURCE \
+    --condition $IOTHUB_ROUTE_CONDITION
 ExitIfNotSuccessful
