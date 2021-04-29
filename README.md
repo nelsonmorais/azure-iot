@@ -98,9 +98,11 @@ Peered networks:
 - IT <-> OT
 
 # ==> TODO <==
-- Private links for DPS, IoTHub, ACR. Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
-  - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
-  - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+- Private links for DPS, IoTHub, ACR, Storage Accounts
+  - Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
+    - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
+    - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+- With Private links configured on all services, remove the public access on the services.
 - Azure Streaming Analytics cluster
-- [Optional] LogAnalytics and have diags configure on all servicies into it
+- [Optional] LogAnalytics and have diags configured on all servicies to use it
 - [Optional] More than one VM as Edge device to get simulation data from multiple devices
