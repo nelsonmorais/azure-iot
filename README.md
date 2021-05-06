@@ -13,14 +13,19 @@ _This is a work in progress and the list of created resources will be adjusted o
 The scripts will create the following resources:
 - 1 Resource group (resource group where all the resources will be created)
 - 2 VNets (IT and OT see details below)
+  - IT Subnets: Default, AzureBastionSubnet
+  - OT Subnets: Default
 - 1 Bastion (to provide secure access to the VM of the simulated IoT Edge device)
 - Storage Account(s) for:
   - IoT Hub (for custom routing to cold storage)
   - TSI
 - 1 Azure Container Registry (to store the IoT Edge simulated temperature module)
+  - Private Endpoint + NIC on the IT Default Subnet
   - Image azureiotedge-simulated-temperature-sensor:1.0 pushed to the ACR
-- 1 IoT Hub (to where the IoT Edge simulated deice will be registered)
+- 1 IoT Hub (to where the IoT Edge simulated device will be registered)
+  - Private Endpoint + NIC on the IT Default Subnet
 - 1 Device Provisioning Service (to provide an enrollment group from where the IoT Edge device will be provisioned)
+  - Private Endpoint + NIC on the IT Default Subnet
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
 - Time Series Insights
 - [TODO: Azure Streaming Analytics Cluster]
@@ -55,10 +60,10 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file. It loads the `bash-functions.azcli` and the `variables-local-only.azcli`
 - `vnets.azcli`: Creates the VNets (see more info below)
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
-- `acr.azcli`: Creates the Azure Container Registry
+- `acr.azcli`: Creates the Azure Container Registry, ACR Private Endpoint
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
-- `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes
-- `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up a Enrollment Group
+- `iothub.azcli`: Creates the Azure IoT Hub, IoTHub Private Endpoint, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes
+- `dps.azcli`: Creates the Azure Device Provisioning Service, DPS Private Endpoint, configures the linked Iot Hub and sets up a Enrollment Group
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
 - `tsi.azcli`: Creates the Time Series Insigths, configures the IoT Hub consumer group for TSI and adds the IoT Hubs as an event source for TSI
 
@@ -83,7 +88,11 @@ VNet: IT - Informational Technology
 - Address space: 10.1.0.0/16
 - Subnet: Default
   - Address space: 10.1.1.0/24
-  - Resources: [TODO: DPS, IoT Hub, ACR, ASA]
+  - Resources:
+    - DPS: 1 Private Endpoint, 1 NIC, 1 IP Address
+    - IoT Hub: 1 Private Endpoint, 1 NIC, 2 IP Addresses
+    - ACR: 1 Private Endpoint, 1 NIC, 2 IP Addresses
+    - [TODO: ASA]
 - Subnet: AzureBastionSubnet
   - Address space: 10.1.0.0/27
   - Resources: Bastion
@@ -98,7 +107,7 @@ Peered networks:
 - IT <-> OT
 
 # ==> TODO <==
-- Private links for DPS, IoTHub, ACR, Storage Accounts
+- Private links for Storage Accounts
   - Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
     - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
     - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns

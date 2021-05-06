@@ -31,13 +31,6 @@ EchoLocalVariables() {
     echo -e ${reset}    
 }
 
-GetACRPassword() {
-    resource_group=$1   # Resource Group
-    acr_name=$2         # ACR name
-
-    az acr credential show --name $acr_name --resource-group $resource_group | jq '.passwords[0].value'
-}
-
 CreateSymetricKeyBase64() {
     openssl rand 32 | base64 -w 0
 }
@@ -61,10 +54,33 @@ CreateDeviceSymetricKeyBase64() {
         --registration-id $registration_id)
 }
 
+GetACRPassword() {
+    resource_group=$1   # Resource Group
+    acr_name=$2         # ACR name
+
+    az acr credential show --name $acr_name --resource-group $resource_group | jq '.passwords[0].value'
+}
+
+GetACRResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    acr_name=$3        # ACR name
+
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.ContainerRegistry/registries/$acr_name"
+}
+
 GetDPSScopeId() {
     dps_name=$1     # DPS name
 
     az iot dps show --name $dps_name | jq .properties.idScope
+}
+
+GetDPSResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    dps_name=$3        # DPS name
+
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Devices/ProvisioningServices/$dps_name"
 }
 
 GetIoTHubConnectionString() {
@@ -86,6 +102,15 @@ GetIoTHubResourceId() {
     iothub_name=$3     # IoT Hub name
 
     echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Devices/IotHubs/$iothub_name"
+}
+
+GetVNetSubnetResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    vnet=$3            # VNet
+    subnet=$4          # Subnet
+
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Network/virtualNetworks/$vnet/subnets/$subnet"
 }
 
 GetStorageConnectionString() {

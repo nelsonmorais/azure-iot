@@ -34,26 +34,26 @@ echo -e ${cyan}Create the Resource Group${reset}
 az group create --name $RESOURCE_GROUP --location $LOCATION
 ExitIfNotSuccessful
 
-# VNET - DONE
+# Virtual Networks
 . vnets.azcli
 
-# Bastion - DONE (running in background as it takes a while to complete and we can proceed with other resources)
+# Bastion (running in background as it takes a while to complete and we can proceed with other resources)
 . bastion.azcli > bastion.log &
 
-# ACR - DONE - Tentative: PRIVATE LINK
+# Azure Container Registry - Tenative: Block Public Network (after pushing images)
 . acr.azcli
 . acr-push-images.azcli
 
-# IoTHub - DONE - Tentative: PRIVATE LINK
+# IoT Hub - Tenative: Block Public Network
 . iothub.azcli
 
-# DPS - DONE - Tentative: PRIVATE LINK
+# DPS - Tenative: Block Public Network
 . dps.azcli
 
-# TSI - DONE
+# Time Series Insights
 . tsi.azcli
 
-# VM (Edge Simulator) - DONE
+# Virtual Machine (Edge Simulator)
 . vm-edge-simulator.azcli
 
 # (Optional: ASA Cluster)

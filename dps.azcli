@@ -22,6 +22,22 @@ az iot dps create \
     --sku $DPS_SKU
 ExitIfNotSuccessful
 
+
+# Get the DPS Resource Id
+dps_resource_id=$(GetDPSResourceId $SUBSCRIPTION $RESOURCE_GROUP $DPS_NAME)
+
+# Create the Private Endpoint for the DPS on the IT network
+az network private-endpoint create \
+    --connection-name $DPS_NETWORK_PE_CONNECTION_NAME \
+    --name $DPS_NETWORK_PE_NAME \
+    --private-connection-resource-id $dps_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id iotDps
+ExitIfNotSuccessful
+
+
 # Capture IoTHub Connection String (needed to link the IoTHub with the DPS)
 echo -e ${cyan}Capturing IoTHub Connection String${reset}
 iothub_connectionstring=$(GetIoTHubConnectionString $IOTHUB_NAME)
@@ -35,6 +51,7 @@ az iot dps linked-hub create \
     --location $LOCATION \
     --resource-group $RESOURCE_GROUP
 ExitIfNotSuccessful
+
 
 # Generate the DPS Keys
 dps_enrollment_primary_key=$(CreateSymetricKeyBase64)
@@ -51,4 +68,3 @@ az iot dps enrollment-group create \
      --secondary-key $dps_enrollment_secondary_key \
      --initial-twin-tags "$DPS_ENROLLMENT_INITIAL_TWIN_TAGS"
 ExitIfNotSuccessful
-

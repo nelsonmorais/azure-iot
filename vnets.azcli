@@ -24,6 +24,15 @@ az network vnet create \
     --subnet-prefixes $VNET_IT_SUBNET_DEFAULT_PREFIXES
 ExitIfNotSuccessful
 
+# Get the VNet Subnet resource Id
+subnet_resource_id=$(GetVNetSubnetResourceId $SUBSCRIPTION $RESOURCE_GROUP $VNET_IT_NAME $VNET_IT_SUBNET_DEFAULT_NAME)
+
+# Disable private endpoint network policies on the IT default subnet (to allow private endpoints to be created on the subnet)
+az network vnet subnet update \
+    --ids $subnet_resource_id \
+    --disable-private-endpoint-network-policies true
+ExitIfNotSuccessful
+
 # Add a subnet on the IT VNet for the Bastion service
 echo -e ${cyan}Add a subnet on the IT VNet for the Bastion service${reset}
 az network vnet subnet create \

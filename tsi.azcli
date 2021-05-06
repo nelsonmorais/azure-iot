@@ -59,7 +59,7 @@ ExitIfNotSuccessful
 
 # Get the IoT Hub Resource Id
 echo -e ${cyan}Get the IoT Hub Resource Id${reset}
-tsi_event_source_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
+iothub_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
 ExitIfNotSuccessful
 
 # Add the IoT Hub as the Event source
@@ -70,7 +70,7 @@ az tsi event-source iothub create \
     --consumer-group-name $TSI_EVENT_SOURCE_IOTHUB_CONSUMER_GROUP_NAME \
     --environment-name $TSI_ENVIRONMENT_NAME \
     --event-source-name $TSI_EVENT_SOURCE_NAME \
-    --event-source-resource-id $tsi_event_source_resource_id \
+    --event-source-resource-id $iothub_resource_id \
     --iot-hub-name $IOTHUB_NAME \
     --key-name $TSI_EVENT_SOURCE_IOTHUB_KEY_NAME \
     --shared-access-key $tsi_event_source_iothub_shared_access_key
