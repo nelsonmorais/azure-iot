@@ -1,11 +1,11 @@
 # Azure IoT Sandbox
 
 ## Description
-The purpose of this project is to create a Sandbox of a very basic and hypotetical Industrial IoT environment by creating a set of Azure resources for that purpose.
+The purpose of this project is to create a Sandbox of an Industrial IoT environment by creating a set of Azure resources for that purpose.
 
 The repository contains a set of bash (.azcli) scripts that, once executed, will create a set of Azure IoT related resources.
 
-Once the execution of the scripts ends, an Azure IoT Edge simulator device sending simulated telemetry to an IoT Hub should be up and running.
+Once the execution of the scripts ends, an Azure IoT Edge simulator device sending simulated telemetry to an IoT Hub should be up and running. The data should be visible in Time Series Insights and on the storage account to where the raw messages are routed to.
 
 _This is a work in progress and the list of created resources will be adjusted over time._
 
@@ -53,19 +53,19 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `create-all.zcli`: Creates all resources by invoking the individual scripts per resource type
 - `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has might be present on the Subscription due to other needs, it needs to be removed manually if there're no other identified dependencies
 - `bash-functions.azcli`: Utility functions used by the scripts
-- `variables-local-only.azcli`: This file needs to be created to define the following variables
+- `variables-local-only.azcli`: This file is excluded from git and needs to be created to define the following variables
   - SUBSCRIPTION
   - VM_EDGE_ADMIN_USER
   - VM_EDGE_ADMIN_PASS
-- `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file. It loads the `bash-functions.azcli` and the `variables-local-only.azcli`
+- `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file
 - `vnets.azcli`: Creates the VNets (see more info below)
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
 - `acr.azcli`: Creates the Azure Container Registry, ACR Private Endpoint
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
-- `iothub.azcli`: Creates the Azure IoT Hub, IoTHub Private Endpoint, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes
-- `dps.azcli`: Creates the Azure Device Provisioning Service, DPS Private Endpoint, configures the linked Iot Hub and sets up a Enrollment Group
+- `iothub.azcli`: Creates the Azure IoT Hub, IoTHub Private Endpoint, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint
+- `dps.azcli`: Creates the Azure Device Provisioning Service, DPS Private Endpoint, configures the linked Iot Hub and sets up an Enrollment Group
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
-- `tsi.azcli`: Creates the Time Series Insigths, configures the IoT Hub consumer group for TSI and adds the IoT Hubs as an event source for TSI
+- `tsi.azcli`: Creates the Time Series Insigths, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
 
 ## Other files details
 - `readme.md`: This file
@@ -80,7 +80,7 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
     - Note that the module was configured to send an unlimited number of messages by setting the environment variable MessageCount = -1 (see: https://github.com/Azure/iotedge/blob/027a509549a248647ed41ca7fe1dc508771c8123/edge-modules/SimulatedTemperatureSensor/src/Program.cs)
   - `manifest-simulated-temperature.json`: Generated file from the manifest-simulated-temperature.template, can be safely deleted and is excluded from git to avoid commiting any sensible information
 - `reference-files\`
-  - `install-iotedg.sh`: Script with the steps needed to install Azure IoT Edge daemon on a Lunix based device
+  - `install-iotedg.sh`: Script with the basic steps needed to install Azure IoT Edge daemon on a Lunix based device
   - `sample-config.yaml`: Sample file of the IoTEdge device configuration
 
 ## VNets configuration
@@ -107,11 +107,11 @@ Peered networks:
 - IT <-> OT
 
 # ==> TODO <==
-- Private links for Storage Accounts
+- Private endpoints for Storage Accounts
+- With Private endpoints configured on all services, remove the public access on the services.
   - Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
     - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
     - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-- With Private links configured on all services, remove the public access on the services.
-- Azure Streaming Analytics cluster
+- [Optional] Azure Streaming Analytics cluster to generate some sort of alert
 - [Optional] LogAnalytics and have diags configured on all servicies to use it
 - [Optional] More than one VM as Edge device to get simulation data from multiple devices
