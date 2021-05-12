@@ -124,8 +124,8 @@ Peered networks:
         - A record: _ACR name_ : IP of private endpoint nic
         - A record: _ACR name_`.<region>.data` : IP of private endpoint nic
     - Storage Accounts
-      - Zone: `<TODO>`
-        - A record: _TODO_ : IP of private endpoint nic
+      - Zone: `privatelink.blob.core.windows.net`
+        - A record: _Blob Container name_ : IP of private endpoint nic
   - Link the Private DNS with the OT VNet (check if the IT VNet is also needed)
   - For more info on Private DNS see:
     - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
