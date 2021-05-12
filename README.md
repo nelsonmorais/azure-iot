@@ -26,9 +26,10 @@ The scripts will create the following resources:
   - Private Endpoint + NIC on the IT Default Subnet
 - 1 Device Provisioning Service (to provide an enrollment group from where the IoT Edge device will be provisioned)
   - Private Endpoint + NIC on the IT Default Subnet
+- [TODO]: Private DNS Zones, linked to the OT (and IT if needed) VNet, with A records for all resources with an IP linked to the NIC of the Private Endpoints
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
 - Time Series Insights
-- [TODO: Azure Streaming Analytics Cluster]
+- [TODO]: Azure Streaming Analytics Cluster
 
 ## Pre-requisites:
 - An Azure Subscription where to run this script
@@ -92,7 +93,7 @@ VNet: IT - Informational Technology
     - DPS: 1 Private Endpoint, 1 NIC, 1 IP Address
     - IoT Hub: 1 Private Endpoint, 1 NIC, 2 IP Addresses
     - ACR: 1 Private Endpoint, 1 NIC, 2 IP Addresses
-    - [TODO: ASA]
+    - [TODO]: Azure Stream Analytics cluster
 - Subnet: AzureBastionSubnet
   - Address space: 10.1.0.0/27
   - Resources: Bastion
@@ -108,10 +109,27 @@ Peered networks:
 
 # ==> TODO <==
 - Private endpoints for Storage Accounts
-- With Private endpoints configured on all services, remove the public access on the services.
-  - Require /etc/hosts configuration on the VM to use the private IPs (via cloud-config)? Or a Private DNS see:
+- With Private endpoints configured on all services, create the Private DNS for all services where a private endpoint exists and then remove the public access on the services.
+  - Create Private DNS zones needed for:
+    - DPS
+      - Zone: `privatelink.azure-devices-provisioning.net`
+        - A record: _DPS name_ : IP of private endpoint nic
+    - IoT Hub
+      - Zone: `privatelink.azure-devices.net`
+        - A record: _IoT Hub name_ : IP of private endpoint nic
+      - Zone: `privatelink.servicebus.windows.net`
+        - A record: _the generated ServiceBus name of the IoT Hub_ : IP of private endpoint nic
+    - ACR
+      - Zone: `privatelink.azurecr.io`
+        - A record: _ACR name_ : IP of private endpoint nic
+        - A record: _ACR name_`.<region>.data` : IP of private endpoint nic
+    - Storage Accounts
+      - Zone: `<TODO>`
+        - A record: _TODO_ : IP of private endpoint nic
+  - Link the Private DNS with the OT VNet (check if the IT VNet is also needed)
+  - For more info on Private DNS see:
     - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
     - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 - [Optional] Azure Streaming Analytics cluster to generate some sort of alert
 - [Optional] LogAnalytics and have diags configured on all servicies to use it
-- [Optional] More than one VM as Edge device to get simulation data from multiple devices
+- [Optional] More than one VM as Edge device, eventually on a second OT VNet, to get simulation data from multiple devices
