@@ -22,18 +22,3 @@ az acr create \
     --admin-enabled $ACR_ADMIN_ENABLED \
     --sku $ACR_SKU
 ExitIfNotSuccessful
-
-
-# Get the ACR Resource Id
-acr_resource_id=$(GetACRResourceId $SUBSCRIPTION $RESOURCE_GROUP $ACR_NAME)
-
-# Create the Private Endpoint for the ACR on the IT network
-az network private-endpoint create \
-    --connection-name $ACR_NETWORK_PE_CONNECTION_NAME \
-    --name $ACR_NETWORK_PE_NAME \
-    --private-connection-resource-id $acr_resource_id \
-    --resource-group $RESOURCE_GROUP \
-    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
-    --vnet-name $VNET_IT_NAME \
-    --group-id registry
-ExitIfNotSuccessful

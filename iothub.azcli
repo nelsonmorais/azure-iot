@@ -24,21 +24,6 @@ az iot hub create \
 ExitIfNotSuccessful
 
 
-# Get the IoTHub Resource Id
-iothub_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
-
-# Create the Private Endpoint for the IoTHub on the IT network
-az network private-endpoint create \
-    --connection-name $IOTHUB_NETWORK_PE_CONNECTION_NAME \
-    --name $IOTHUB_NETWORK_PE_NAME \
-    --private-connection-resource-id $iothub_resource_id \
-    --resource-group $RESOURCE_GROUP \
-    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
-    --vnet-name $VNET_IT_NAME \
-    --group-id iothub
-ExitIfNotSuccessful
-
-
 # Get the ACR password
 echo -e ${cyan}Get the ACR password${reset}
 password=$(GetACRPassword $RESOURCE_GROUP $ACR_NAME)
