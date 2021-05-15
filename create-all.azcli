@@ -37,6 +37,9 @@ ExitIfNotSuccessful
 # Virtual Networks
 . vnets.azcli
 
+# Private DNS
+. dns.azcli
+
 # Bastion (running in background as it takes a while to complete and we can proceed with other resources)
 . bastion.azcli > bastion.log &
 
@@ -49,6 +52,9 @@ ExitIfNotSuccessful
 
 # DPS - Tenative: Block Public Network
 . dps.azcli
+
+# Disable public traffic on ACR, IoT Hub, DPS and use VNet only
+. disable-public-traffic.azcli
 
 # Time Series Insights
 . tsi.azcli

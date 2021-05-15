@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Private DNS configuration
+echo -e ${green}Private DNS configuration${reset}
+
+# Create the private DNS Zones:
+#  - privatelink.azure-devices-provisioning.net
+#  - privatelink.azure-devices.net
+#  - privatelink.servicebus.windows.net
+#  - privatelink.azurecr.io
+#  - privatelink.blob.core.windows.net
+echo -e ${cyan}Create the private DNS Zones${reset}
+az network private-dns zone create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES_PROVISIONING \
+&& \
+az network private-dns zone create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+&& \
+az network private-dns zone create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_ZONE_PRIVATELINK_SERVICEBUS_WINDOWS \
+&& \
+az network private-dns zone create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_ZONE_PRIVATELINK_AZURECR \
+&& \
+az network private-dns zone create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS
+ExitIfNotSuccessful
+
+# Link the Private DNS Zones to the VNets
+#  - VNet IT for privatelink.azure-devices-provisioning.net
+#  - VNet IT for privatelink.azure-devices.net
+#  - VNet IT for privatelink.servicebus.windows.net
+#  - VNet IT for privatelink.azurecr.io
+#  - VNet IT for privatelink.blob.core.windows.net
+#  - VNet OT for privatelink.azure-devices-provisioning.net
+#  - VNet OT for privatelink.azure-devices.net
+#  - VNet OT for privatelink.servicebus.windows.net
+#  - VNet OT for privatelink.azurecr.io
+#  - VNet OT for privatelink.blob.core.windows.net
+echo -e ${cyan}Link the Private DNS Zones to the VNets${reset}
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_IT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_IT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES_PROVISIONING \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_IT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_IT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_IT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_IT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_SERVICEBUS_WINDOWS \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_IT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_IT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_IT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_IT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_OT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_OT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES_PROVISIONING \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_OT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_OT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_OT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_OT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_SERVICEBUS_WINDOWS \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_OT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_OT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+&& \
+az network private-dns link vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $DNS_LINK_VNET_OT \
+    --registration-enabled $DNS_LINK_VNET_REGISTRATION_ENABLED \
+    --virtual-network $VNET_OT_NAME \
+    --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS
+ExitIfNotSuccessful

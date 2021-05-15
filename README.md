@@ -15,6 +15,12 @@ The scripts will create the following resources:
 - 2 VNets (IT and OT see details below)
   - IT Subnets: Default, AzureBastionSubnet
   - OT Subnets: Default
+- 5 Private DNS Zones (to support the Private Endpoints DNS resolution)
+  - privatelink.azure-devices-provisioning.net
+  - privatelink.azure-devices.net
+  - privatelink.servicebus.windows.net
+  - privatelink.azurecr.io
+  - privatelink.blob.core.windows.net
 - 1 Bastion (to provide secure access to the VM of the simulated IoT Edge device)
 - Storage Account(s) for:
   - IoT Hub (for custom routing to cold storage)
@@ -26,7 +32,7 @@ The scripts will create the following resources:
   - Private Endpoint + NIC on the IT Default Subnet
 - 1 Device Provisioning Service (to provide an enrollment group from where the IoT Edge device will be provisioned)
   - Private Endpoint + NIC on the IT Default Subnet
-- [TODO]: Private DNS Zones, linked to the OT (and IT if needed) VNet, with A records for all resources with an IP linked to the NIC of the Private Endpoints
+- Private DNS Zones A records for all resources with an IP linked to the NIC of the Private Endpoints ([TODO]: Storage accounts)
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
 - Time Series Insights
 - [TODO]: Azure Streaming Analytics Cluster
@@ -60,13 +66,15 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
   - VM_EDGE_ADMIN_PASS
 - `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file
 - `vnets.azcli`: Creates the VNets (see more info below)
+- `dns.azcli`: Creates the Private DNS Zones and links them to the VNets
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
-- `acr.azcli`: Creates the Azure Container Registry, ACR Private Endpoint
+- `acr.azcli`: Creates the Azure Container Registry
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
-- `iothub.azcli`: Creates the Azure IoT Hub, IoTHub Private Endpoint, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint
-- `dps.azcli`: Creates the Azure Device Provisioning Service, DPS Private Endpoint, configures the linked Iot Hub and sets up an Enrollment Group
+- `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint
+- `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up an Enrollment Group
+- `disable-public-traffic.azcli`: Creates Private Endpoints for ACR, IoT Hub, DPS and storage accounts, adds private DNS Zones A records and disables public access for ACR, IoT Hub, DPS and storage accounts
+- `tsi.azcli`: Creates the Time Series Insigths, TSI storage account, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
-- `tsi.azcli`: Creates the Time Series Insigths, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
 
 ## Other files details
 - `readme.md`: This file
@@ -111,25 +119,10 @@ Peered networks:
 - Private endpoints for Storage Accounts
 - With Private endpoints configured on all services, create the Private DNS for all services where a private endpoint exists and then remove the public access on the services.
   - Create Private DNS zones needed for:
-    - DPS
-      - Zone: `privatelink.azure-devices-provisioning.net`
-        - A record: _DPS name_ : IP of private endpoint nic
-    - IoT Hub
-      - Zone: `privatelink.azure-devices.net`
-        - A record: _IoT Hub name_ : IP of private endpoint nic
-      - Zone: `privatelink.servicebus.windows.net`
-        - A record: _the generated ServiceBus name of the IoT Hub_ : IP of private endpoint nic
-    - ACR
-      - Zone: `privatelink.azurecr.io`
-        - A record: _ACR name_ : IP of private endpoint nic
-        - A record: _ACR name_`.<region>.data` : IP of private endpoint nic
     - Storage Accounts
       - Zone: `privatelink.blob.core.windows.net`
         - A record: _Blob Container name_ : IP of private endpoint nic
-  - Link the Private DNS with the OT VNet (check if the IT VNet is also needed)
-  - For more info on Private DNS see:
-    - https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support
-    - https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+  - Check if both the IT and OT VNets need to be linked to the Private DNS Zones
 - [Optional] Azure Streaming Analytics cluster to generate some sort of alert
 - [Optional] LogAnalytics and have diags configured on all servicies to use it
 - [Optional] More than one VM as Edge device, eventually on a second OT VNet, to get simulation data from multiple devices

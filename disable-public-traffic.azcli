@@ -1,0 +1,148 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Disable public traffic on ACR, IoT Hub, DPS and use VNet only
+echo -e ${green}Disable public traffic on ACR, IoT Hub, DPS and use VNet only${reset}
+
+# Create the Private Endpoints for ACR, IoT Hub, DPS (TODO: and 2 Storage accounts)
+echo -e ${green}Create the Private Endpoints for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+# Get the Resource Ids
+acr_resource_id=$(GetACRResourceId $SUBSCRIPTION $RESOURCE_GROUP $ACR_NAME)
+iothub_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
+dps_resource_id=$(GetDPSResourceId $SUBSCRIPTION $RESOURCE_GROUP $DPS_NAME)
+# Create the Private Endpoint for:
+# - the ACR on the IT network
+# - for the IoTHub on the IT network
+# - for the DPS on the IT network
+# - for the 2 Storage accounts on the IT network
+az network private-endpoint create \
+    --connection-name $ACR_NETWORK_PE_CONNECTION_NAME \
+    --name $ACR_NETWORK_PE_NAME \
+    --private-connection-resource-id $acr_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id registry \
+&& \
+az network private-endpoint create \
+    --connection-name $IOTHUB_NETWORK_PE_CONNECTION_NAME \
+    --name $IOTHUB_NETWORK_PE_NAME \
+    --private-connection-resource-id $iothub_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id iothub \
+&& \
+az network private-endpoint create \
+    --connection-name $DPS_NETWORK_PE_CONNECTION_NAME \
+    --name $DPS_NETWORK_PE_NAME \
+    --private-connection-resource-id $dps_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id iotDps #\
+# && \
+# az network private-endpoint create \
+#     --connection-name $IOTHUB_STORAGE_NETWORK_PE_CONNECTION_NAME \   <==
+#     --name $IOTHUB_STORAGE_NETWORK_PE_NAME \                         <==
+#     --private-connection-resource-id $iothub_storage_resource_id \   <==
+#     --resource-group $RESOURCE_GROUP \
+#     --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+#     --vnet-name $VNET_IT_NAME \
+#     --group-id ??? \
+# && \
+# az network private-endpoint create \
+#     --connection-name $TSI_STORAGE_NETWORK_PE_CONNECTION_NAME \   <==
+#     --name $TSI_STORAGE_NETWORK_PE_NAME \                         <==
+#     --private-connection-resource-id $tsi_storage_resource_id \   <==
+#     --resource-group $RESOURCE_GROUP \
+#     --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+#     --vnet-name $VNET_IT_NAME \
+#     --group-id ???
+ExitIfNotSuccessful
+
+# Add Private DNS Zone records for ACR, IoT Hub, DPS (TODO: and 2 Storage accounts)
+echo -e ${green}Add Private DNS Zone records for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+# Get the Zone names and the IPv4 addresses for ACR, IoT Hub, DPS (TODO: and 2 Storage accounts)
+zone_name_acr=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME)
+zone_name_acr_data=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME_DATA)
+zone_name_iothub=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES)
+zone_name_servicebus=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_SERVICEBUS_WINDOWS)
+zone_name_dps=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $DPS_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES_PROVISIONING)
+# # # zone_name_storage_iothub=
+# # # zone_name_storage_tsi=
+ip_acr=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME)
+ip_acr_data=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME_DATA)
+ip_iothub=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES)
+ip_servicebus=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_SERVICEBUS_WINDOWS)
+ip_dps=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $DPS_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES_PROVISIONING)
+# # # # ip_iothub_storage_blob=
+# # # # ip_tsi_storage_blob=
+
+echo -e ${blue}$zone_name_acr : $ip_acr${reset}
+echo -e ${blue}$zone_name_acr_data : $ip_acr_data${reset}
+echo -e ${blue}$zone_name_iothub : $ip_iothub${reset}
+echo -e ${blue}$zone_name_servicebus : $ip_servicebus${reset}
+echo -e ${blue}$zone_name_dps : $ip_dps${reset}
+# # # echo -e ${blue}$zone_name_storage_iothub : $ip_iothub_storage_blob${reset}
+# # # echo -e ${blue}$zone_name_storage_tsi : $ip_tsi_storage_blob${reset}
+
+# Add Private DNS Zone A records for:
+# - ACR & ACR data
+# - IoT Hub
+# - DPS
+# - (TODO: 2 Storage accounts)
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+    --record-set-name $zone_name_acr \
+    --ipv4-address $ip_acr \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+    --record-set-name $zone_name_acr_data \
+    --ipv4-address $ip_acr_data \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+    --record-set-name $zone_name_iothub \
+    --ipv4-address $ip_iothub \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+    --record-set-name $zone_name_servicebus \
+    --ipv4-address $ip_servicebus \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES_PROVISIONING \
+    --record-set-name $zone_name_dps \
+    --ipv4-address $ip_dps #\
+# && \
+# az network private-dns record-set a add-record \
+#     --resource-group $RESOURCE_GROUP \
+#     --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS \
+#     --record-set-name $zone_name_storage_iothub \                <==
+#     --ipv4-address $ip_iothub_storage_blob \                     <==
+# && \
+# az network private-dns record-set a add-record \
+#     --resource-group $RESOURCE_GROUP \
+#     --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS \
+#     --record-set-name $$zone_name_storage_tsi \                  <==
+#     --ipv4-address $ip_tsi_storage_blob                          <==
+
+# TODO: Disable public access on ACR, IoT Hub, DPS and 2 Storage accounts
+# ...
