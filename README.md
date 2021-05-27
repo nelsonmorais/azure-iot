@@ -1,13 +1,29 @@
-# Azure IoT Sandbox
+# Azure IIoT Sandbox
 
 ## Description
 The purpose of this project is to create a Sandbox of an Industrial IoT environment by creating a set of Azure resources for that purpose.
 
 The repository contains a set of bash (.azcli) scripts that, once executed, will create a set of Azure IoT related resources.
 
-Once the execution of the scripts ends, an Azure IoT Edge simulator device sending simulated telemetry to an IoT Hub should be up and running. The data should be visible in Time Series Insights and on the storage account to where the raw messages are routed to.
+Once the execution of the scripts ends, an Azure IoT Edge simulator device sending simulated telemetry to an IoT Hub should be up and running.
+
+The simulated data can be seen in two places:
+- The Storage Account to where the IoT Hub message rounting is configured to keep data for cold storage analysis
+- In Time Series Insights as long as the IoT Hub has the network configured to allow public connections (see note below).
+
+__Note 1__:
+- TSI ingest doesn't work if Public traffic is disabled on the IoT Hub and on the TSI Storage Account, for more info see: https://docs.microsoft.com/en-us/azure/time-series-insights/concepts-streaming-ingestion-event-sources#create-or-edit-event-sources
+- To have TSI data ingested, the IoT Hub and the TSI Storage Account network configurations need to allow Public connectivity, this is not the case if the `disable-public-traffic.azcli` is executed, which is the default case on the `create-all.azcli` script
+- [TODO:] A possible workaroud is to use and Event Hub between IoT Hub and TSI, but this also requires the Event Hub and the TSI Storage Account to allow Public connectivity
+- [TODO:] An alternative to TSI would be Azure Data Explorer
+
+__Note 2__:
+- If public network access is not allowed on the Storage Accounts (default case on the `create-all.azcli`), then a network firewall rule needs to be added with the local machine public IP address to allow access to the `cold-storage` container of the IoT Hub Storage Account and to the TSI Storgae Account environment container, to be able to see the blobs on these containers
 
 _This is a work in progress and the list of created resources will be adjusted over time._
+
+## Resources diagram
+[TODO]
 
 ## What will be created
 The scripts will create the following resources:
@@ -15,7 +31,7 @@ The scripts will create the following resources:
 - 2 VNets (IT and OT see details below)
   - IT Subnets: Default, AzureBastionSubnet
   - OT Subnets: Default
-- 5 Private DNS Zones (to support the Private Endpoints DNS resolution)
+- 5 Private DNS Zones (to support the Private Endpoints DNS resolution) where Zone A records will also bre created
   - privatelink.azure-devices-provisioning.net
   - privatelink.azure-devices.net
   - privatelink.servicebus.windows.net
@@ -32,7 +48,7 @@ The scripts will create the following resources:
   - Private Endpoint + NIC on the IT Default Subnet
 - 1 Device Provisioning Service (to provide an enrollment group from where the IoT Edge device will be provisioned)
   - Private Endpoint + NIC on the IT Default Subnet
-- Private DNS Zones A records for all resources with an IP linked to the NIC of the Private Endpoints ([TODO]: Storage accounts)
+- Private DNS Zone A records for all resources with an IP linked to the NIC of the Private Endpoints
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
 - Time Series Insights
 - [TODO]: Azure Streaming Analytics Cluster
@@ -58,7 +74,7 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 
 ## Script files details
 - `create-all.zcli`: Creates all resources by invoking the individual scripts per resource type
-- `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has might be present on the Subscription due to other needs, it needs to be removed manually if there're no other identified dependencies
+- `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has it might be present on the Subscription due to other needs, remove it manually if there're no other identified dependencies
 - `bash-functions.azcli`: Utility functions used by the scripts
 - `variables-local-only.azcli`: This file is excluded from git and needs to be created to define the following variables
   - SUBSCRIPTION
@@ -66,13 +82,15 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
   - VM_EDGE_ADMIN_PASS
 - `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file
 - `vnets.azcli`: Creates the VNets (see more info below)
-- `dns.azcli`: Creates the Private DNS Zones and links them to the VNets
 - `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
 - `acr.azcli`: Creates the Azure Container Registry
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
 - `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint
 - `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up an Enrollment Group
-- `disable-public-traffic.azcli`: Creates Private Endpoints for ACR, IoT Hub, DPS and storage accounts, adds private DNS Zones A records and disables public access for ACR, IoT Hub, DPS and storage accounts
+- `dns.azcli`: Creates the Private DNS Zones and links them to the VNets
+- `vnets-create-private-endpoints.azcli`: Creates Private Endpoints for ACR, IoT Hub, DPS and Storage Accounts
+- `dns-add-zone-records.azcli`: Adds private DNS Zones A records
+- `disable-public-traffic.azcli`: Disables public access for ACR, IoT Hub, ([TODO:][due to az cli BUG] DPS) and Storage Accounts
 - `tsi.azcli`: Creates the Time Series Insigths, TSI storage account, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
 
@@ -116,12 +134,6 @@ Peered networks:
 - IT <-> OT
 
 # ==> TODO <==
-- Private endpoints for Storage Accounts
-- With Private endpoints configured on all services, create the Private DNS for all services where a private endpoint exists and then remove the public access on the services.
-  - Create Private DNS zones needed for:
-    - Storage Accounts
-      - Zone: `privatelink.blob.core.windows.net`
-        - A record: _Blob Container name_ : IP of private endpoint nic
   - Check if both the IT and OT VNets need to be linked to the Private DNS Zones
 - [Optional] Azure Streaming Analytics cluster to generate some sort of alert
 - [Optional] LogAnalytics and have diags configured on all servicies to use it

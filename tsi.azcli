@@ -20,6 +20,7 @@ az storage account create \
     --name $TSI_STORAGE_ACCOUNT_NAME \
     --resource-group $RESOURCE_GROUP \
     --sku $TSI_STORAGE_SKU \
+    --allow-blob-public-access $IOTHUB_STORAGE_ALLOW_BLOB_PUBLIC_ACCESS \
     --kind $TSI_STORAGE_KIND
 ExitIfNotSuccessful
 

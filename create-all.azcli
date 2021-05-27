@@ -16,7 +16,7 @@ ExitIfNoVariablesLocalOnlyFile
 EchoLocalVariables
 
 # Due to a bug on the Linux Kernel used by WSL2 (as of 2021-04-15), the date stops updating if the PC hibernates/sleeps, 
-#  the command below forces the date to update and avoids authentication errors on zome az cli commands
+#  the command below forces the date to update and avoids authentication errors on some az cli commands
 # See reported issue on GitHub: https://github.com/microsoft/WSL/issues/5324
 sudo hwclock -s
 
@@ -37,33 +37,43 @@ ExitIfNotSuccessful
 # Virtual Networks
 . vnets.azcli
 
-# Private DNS
-. dns.azcli
-
 # Bastion (running in background as it takes a while to complete and we can proceed with other resources)
 . bastion.azcli > bastion.log &
 
-# Azure Container Registry - Tenative: Block Public Network (after pushing images)
+# Azure Container Registry
 . acr.azcli
 . acr-push-images.azcli
 
-# IoT Hub - Tenative: Block Public Network
+# IoT Hub
 . iothub.azcli
 
-# DPS - Tenative: Block Public Network
+# DPS
 . dps.azcli
 
-# Disable public traffic on ACR, IoT Hub, DPS and use VNet only
-. disable-public-traffic.azcli
-
 # Time Series Insights
+# Notes:
+#  - TSI ingest doesn't work if Public traffic is disabled on the IoT Hub, for more info see: https://docs.microsoft.com/en-us/azure/time-series-insights/concepts-streaming-ingestion-event-sources#create-or-edit-event-sources
+#  - To have TSI data ingested, the IoT Hub network has to allow Public connectivity
+#  - A possible workaroud is to use and Event Hub between IoT Hub and TSI (to be tested if this works with Event Hub Private connections as most certainly it won't)
+#  - An alternative to TSI would be Azure Data Explorer
 . tsi.azcli
 
-# Virtual Machine (Edge Simulator)
-. vm-edge-simulator.azcli
+# ## This block is to block public connectivity, skip it if private connectivity is not needed, if executed TSI will not ingest data until the IoT Hub network allows public connectivity
+# Create Private DNS
+. dns.azcli
+# Create Private Endpoints
+. vnets-create-private-endpoints.azcli
+# Add DNS Zone records
+. dns-add-zone-records.azcli
+# Create Private Links, Private DNS Zones, and disable public traffic on ACR, IoT Hub, DPS and 2 Storage Accounts to use VNet connectivity only
+. disable-public-traffic.azcli
+# ##
 
 # (Optional: ASA Cluster)
 #. asa.azcli
 
+# Virtual Machine (Edge Simulator)
+. vm-edge-simulator.azcli
+
 # Check the bastion log
-tail bastion.log --lines=+1 --follow
+tail bastion.log --lines=+1 #--follow

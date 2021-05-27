@@ -23,6 +23,14 @@ az iot hub create \
     --retention-day $IOTHUB_RETENTION_DAY
 ExitIfNotSuccessful
 
+# Enable a System Managed Identity for the IoT Hub
+# (required to support IoT Hub routing to Blob storage when network public access is disabled and connections are done via the Private Link)
+# For more info see: https://github.com/MicrosoftDocs/azure-docs/issues/67795
+echo -e ${cyan}Enable a System Managed Identity for the IoT Hub${reset}
+az iot hub update \
+    --name $IOTHUB_NAME \
+    --set identity.type="SystemAssigned"
+ExitIfNotSuccessful
 
 # Get the ACR password
 echo -e ${cyan}Get the ACR password${reset}
@@ -75,6 +83,7 @@ az storage account create \
     --resource-group $RESOURCE_GROUP \
     --name $IOTHUB_STORAGE_ACCOUNT_NAME \
     --sku $IOTHUB_STORAGE_SKU \
+    --allow-blob-public-access $IOTHUB_STORAGE_ALLOW_BLOB_PUBLIC_ACCESS \
     --kind $IOTHUB_STORAGE_KIND
 ExitIfNotSuccessful
 
@@ -85,6 +94,20 @@ az storage container create \
     --account-name $IOTHUB_STORAGE_ACCOUNT_NAME \
     --name $IOTHUB_ROUTING_CONTAINER_NAME \
     --auth-mode $IOTHUB_STORAGE_CONTAINER_AUTH_MODE
+ExitIfNotSuccessful
+
+# Provide the IoT Hub System Managed Service Identity the role Storage Blob Data Contributor on the IoT Hub Storage Account
+# This is required to support IoT Hub message routing to Storage Account when the Storage Account does not allow public connectivity
+# For more info see:
+#  https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-managed-identity
+#  https://docs.microsoft.com/en-us/azure/iot-hub/virtual-network-support#egress-connectivity-from-iot-hub-to-other-azure-resources
+echo -e ${cyan}Provide the IoT Hub System Managed Service Identity the role Storage Blob Data Contributor on the IoT Hub Storage Account${reset}
+app_id=$(GetAADServicePrincipalAppId $IOTHUB_NAME)
+iothub_storage_resource_id=$(GetStorageResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_STORAGE_ACCOUNT_NAME)
+az role assignment create \
+    --assignee $app_id \
+    --role "Storage Blob Data Contributor" \
+    --scope $iothub_storage_resource_id
 ExitIfNotSuccessful
 
 # Get the storage Account connection string
@@ -102,6 +125,7 @@ az iot hub routing-endpoint create \
     --endpoint-name $IOTHUB_ROUTING_ENDPOINT_NAME \
     --endpoint-type $IOTHUB_ROUTING_ENDPOINT_TYPE \
     --auth-type $IOTHUB_ROUTING_AUTH_TYPE \
+    --batch-frequency $IOTHUB_ROUTING_BATCH_FREQUENCY \
     --container-name $IOTHUB_ROUTING_CONTAINER_NAME \
     --encoding $IOTHUB_ROUTING_ENCODING \
     --connection-string $connection_string

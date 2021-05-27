@@ -24,7 +24,7 @@ az network vnet create \
     --subnet-prefixes $VNET_IT_SUBNET_DEFAULT_PREFIXES
 ExitIfNotSuccessful
 
-# Get the VNet Subnet resource Id
+# Get the IT VNet Subnet resource Id
 subnet_resource_id=$(GetVNetSubnetResourceId $SUBSCRIPTION $RESOURCE_GROUP $VNET_IT_NAME $VNET_IT_SUBNET_DEFAULT_NAME)
 
 # Disable private endpoint network policies on the IT default subnet (to allow private endpoints to be created on the subnet)
@@ -69,4 +69,15 @@ az network vnet peering create \
     --vnet-name $VNET_OT_NAME \
     --remote-vnet $VNET_IT_NAME \
     --allow-vnet-access
+ExitIfNotSuccessful
+
+# Enable Microsoft.Storage service endpoint on the IT VNet/Default subnet
+#  to allow network firewall rules to be set on the Storage Accounts for this VNet/Subnet,
+#  like disabling public connectivity and allow connectivity from the IT VNet/Default subnet
+echo -e ${cyan}Enable Microsoft.Storage service endpoint on the IT VNet/Default subnet${reset}
+az network vnet subnet update \
+  --vnet-name $VNET_IT_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --name $VNET_IT_SUBNET_DEFAULT_NAME \
+  --service-endpoints Microsoft.Storage # Space separated list of service endpoints
 ExitIfNotSuccessful
