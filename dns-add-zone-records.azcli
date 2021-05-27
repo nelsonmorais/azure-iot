@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Add Private DNS Zone records for ACR, IoT Hub, DPS and 2 Storage accounts
+echo -e ${green}Add Private DNS Zone records for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+
+# Get the Zone names for ACR, IoT Hub, DPS and 2 Storage accounts
+echo -e ${green}Get the Zone names for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+zone_name_acr=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME)
+zone_name_acr_data=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME_DATA)
+zone_name_iothub=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES)
+zone_name_servicebus=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_SERVICEBUS_WINDOWS)
+zone_name_dps=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $DPS_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES_PROVISIONING)
+zone_name_storage_iothub=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $IOTHUB_STORAGE_NETWORK_PE_NAME $DNS_ZONE_BLOB_CORE_WINDOWS)
+zone_name_storage_tsi=$(GetPrivateEndpointCustomDnsConfigZoneName $RESOURCE_GROUP $TSI_STORAGE_NETWORK_PE_NAME $DNS_ZONE_BLOB_CORE_WINDOWS)
+
+# Get the IPv4 addresses for ACR, IoT Hub, DPS and 2 Storage accounts
+echo -e ${green}Get the IPv4 addresses for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+ip_acr=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME)
+ip_acr_data=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $ACR_NETWORK_PE_NAME $DNS_ZONE_AZURECR $ACR_NAME_DATA)
+ip_iothub=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES)
+ip_servicebus=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $IOTHUB_NETWORK_PE_NAME $DNS_ZONE_SERVICEBUS_WINDOWS)
+ip_dps=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $DPS_NETWORK_PE_NAME $DNS_ZONE_AZURE_DEVICES_PROVISIONING)
+ip_iothub_storage_blob=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $IOTHUB_STORAGE_NETWORK_PE_NAME $DNS_ZONE_BLOB_CORE_WINDOWS)
+ip_tsi_storage_blob=$(GetPrivateEndpointCustomDnsConfigFirstIpAddress $RESOURCE_GROUP $TSI_STORAGE_NETWORK_PE_NAME $DNS_ZONE_BLOB_CORE_WINDOWS)
+
+# Show the results obtined above
+echo -e ${blue}$zone_name_acr : $ip_acr${reset}
+echo -e ${blue}$zone_name_acr_data : $ip_acr_data${reset}
+echo -e ${blue}$zone_name_iothub : $ip_iothub${reset}
+echo -e ${blue}$zone_name_servicebus : $ip_servicebus${reset}
+echo -e ${blue}$zone_name_dps : $ip_dps${reset}
+echo -e ${blue}$zone_name_storage_iothub : $ip_iothub_storage_blob${reset}
+echo -e ${blue}$zone_name_storage_tsi : $ip_tsi_storage_blob${reset}
+
+# Add the Private DNS Zone A records for ACR & ACR data, IoT Hub, DPS, 2 Storage accounts
+echo -e ${green}Add the Private DNS Zone A records for ACR & ACR data, IoT Hub, DPS, 2 Storage accounts${reset}
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+    --record-set-name $zone_name_acr \
+    --ipv4-address $ip_acr \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
+    --record-set-name $zone_name_acr_data \
+    --ipv4-address $ip_acr_data \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES \
+    --record-set-name $zone_name_iothub \
+    --ipv4-address $ip_iothub \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_SERVICEBUS_WINDOWS \
+    --record-set-name $zone_name_servicebus \
+    --ipv4-address $ip_servicebus \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_AZURE_DEVICES_PROVISIONING \
+    --record-set-name $zone_name_dps \
+    --ipv4-address $ip_dps \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS \
+    --record-set-name $zone_name_storage_iothub \
+    --ipv4-address $ip_iothub_storage_blob \
+&& \
+az network private-dns record-set a add-record \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $DNS_ZONE_PRIVATELINK_BLOB_CORE_WINDOWS \
+    --record-set-name $zone_name_storage_tsi \
+    --ipv4-address $ip_tsi_storage_blob
+ExitIfNotSuccessful

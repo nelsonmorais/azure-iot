@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Load the variables
+. variables.azcli
+
+# Load global functions
+. bash-functions.azcli
+
+# Import the local only (git ignored) variables that contain sensible data, like azure subscription id, credentials, etc...
+. variables-local-only.azcli
+ExitIfNoVariablesLocalOnlyFile
+EchoLocalVariables
+
+# Create the Private Endpoints for ACR, IoT Hub, DPS and 2 Storage accounts
+echo -e ${green}Create the Private Endpoints for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+
+# Get the Resource Ids
+echo -e ${green}Get the ResourceIds${reset}
+acr_resource_id=$(GetACRResourceId $SUBSCRIPTION $RESOURCE_GROUP $ACR_NAME)
+iothub_resource_id=$(GetIoTHubResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_NAME)
+dps_resource_id=$(GetDPSResourceId $SUBSCRIPTION $RESOURCE_GROUP $DPS_NAME)
+iothub_storage_resource_id=$(GetStorageResourceId $SUBSCRIPTION $RESOURCE_GROUP $IOTHUB_STORAGE_ACCOUNT_NAME)
+tsi_storage_resource_id=$(GetStorageResourceId $SUBSCRIPTION $RESOURCE_GROUP $TSI_STORAGE_ACCOUNT_NAME)
+
+# Create the Private Endpoints on the IT VNet for ACR, IoTHub, DPS, 2 Storage Accounts:
+echo -e ${green}Create the Private Endpoints on the IT VNet for ACR, IoTHub, DPS, 2 Storage Accounts${reset}
+az network private-endpoint create \
+    --connection-name $ACR_NETWORK_PE_CONNECTION_NAME \
+    --name $ACR_NETWORK_PE_NAME \
+    --private-connection-resource-id $acr_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id registry \
+&& \
+az network private-endpoint create \
+    --connection-name $IOTHUB_NETWORK_PE_CONNECTION_NAME \
+    --name $IOTHUB_NETWORK_PE_NAME \
+    --private-connection-resource-id $iothub_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id iothub \
+&& \
+az network private-endpoint create \
+    --connection-name $DPS_NETWORK_PE_CONNECTION_NAME \
+    --name $DPS_NETWORK_PE_NAME \
+    --private-connection-resource-id $dps_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id iotDps \
+&& \
+az network private-endpoint create \
+    --connection-name $IOTHUB_STORAGE_NETWORK_PE_CONNECTION_NAME \
+    --name $IOTHUB_STORAGE_NETWORK_PE_NAME \
+    --private-connection-resource-id $iothub_storage_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id blob \
+&& \
+az network private-endpoint create \
+    --connection-name $TSI_STORAGE_NETWORK_PE_CONNECTION_NAME \
+    --name $TSI_STORAGE_NETWORK_PE_NAME \
+    --private-connection-resource-id $tsi_storage_resource_id \
+    --resource-group $RESOURCE_GROUP \
+    --subnet $VNET_IT_SUBNET_DEFAULT_NAME \
+    --vnet-name $VNET_IT_NAME \
+    --group-id blob
+ExitIfNotSuccessful

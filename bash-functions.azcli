@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Global utility functions
+#
+# Misc functions
+#
 ExitIfNoVariablesLocalOnlyFile() {
     if [ $? -ne 0 ]; then
         echo -e ${red}The variables-local-only.azcli file is not present.${reset}
@@ -35,6 +37,30 @@ CreateSymetricKeyBase64() {
     openssl rand 32 | base64 -w 0
 }
 
+
+#
+# ACR Helper functions
+#
+GetACRPassword() {
+    resource_group=$1   # Resource Group
+    acr_name=$2         # ACR name
+
+    az acr credential show --name $acr_name --resource-group $resource_group | jq '.passwords[0].value'
+}
+
+GetACRResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    acr_name=$3        # ACR name
+
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.ContainerRegistry/registries/$acr_name"
+}
+
+
+#
+# DPS Helper functions
+#
+
 CreateDeviceSymetricKeyBase64() {
     resource_group=$1   # Resource Group
     dps_name=$2         # DPS name
@@ -54,21 +80,6 @@ CreateDeviceSymetricKeyBase64() {
         --registration-id $registration_id)
 }
 
-GetACRPassword() {
-    resource_group=$1   # Resource Group
-    acr_name=$2         # ACR name
-
-    az acr credential show --name $acr_name --resource-group $resource_group | jq '.passwords[0].value'
-}
-
-GetACRResourceId() {
-    subscription=$1    # Subscription
-    resource_group=$2  # Resource Group
-    acr_name=$3        # ACR name
-
-    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.ContainerRegistry/registries/$acr_name"
-}
-
 GetDPSScopeId() {
     dps_name=$1     # DPS name
 
@@ -83,6 +94,10 @@ GetDPSResourceId() {
     echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Devices/ProvisioningServices/$dps_name"
 }
 
+
+#
+# IoT Hub Helper functions
+#
 GetIoTHubConnectionString() {
     iothub_name=$1  # IoTHub name
 
@@ -104,6 +119,10 @@ GetIoTHubResourceId() {
     echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Devices/IotHubs/$iothub_name"
 }
 
+
+#
+# VNet Helper functions
+#
 GetVNetSubnetResourceId() {
     subscription=$1    # Subscription
     resource_group=$2  # Resource Group
@@ -113,6 +132,10 @@ GetVNetSubnetResourceId() {
     echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Network/virtualNetworks/$vnet/subnets/$subnet"
 }
 
+
+#
+# Private Endpoints Helper functions
+#
 GetPrivateEndpointCustomDnsConfigZoneName() {
     resource_group=$1       # Resource Group
     pe_name=$2              # Private Endpoint name
@@ -141,6 +164,10 @@ GetPrivateEndpointCustomDnsConfigFirstIpAddress() {
             jq --raw-output --arg fqdn "$resource_name.$fqdn_end" '.customDnsConfigs[] | select(.fqdn | endswith($fqdn)).ipAddresses[0]'
 }
 
+
+#
+# Storage Accounts Helper functions
+#
 GetStorageConnectionString() {
     account_name=$1 # Storage Account name
 
@@ -153,4 +180,22 @@ GetStorageKey() {
     account_name=$1 # Storage Account name
 
     az storage account keys list --account-name $account_name | jq --raw-output '.[0].value'
+}
+
+GetStorageResourceId() {
+    subscription=$1    # Subscription
+    resource_group=$2  # Resource Group
+    account_name=$3    # Storage Account name
+
+    echo "/subscriptions/$subscription/resourceGroups/$resource_group/providers/Microsoft.Storage/storageAccounts/$account_name"
+}
+
+
+#
+# AAD Helper functions
+#
+GetAADServicePrincipalAppId() {
+    display_name=$1    # Service Principal display name
+
+    az ad sp list --display-name $display_name | jq --raw-output '.[0].appId'
 }
