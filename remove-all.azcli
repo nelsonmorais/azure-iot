@@ -21,8 +21,13 @@ EchoLocalVariables
 # Select the Subscription
 echo -e ${cyan}Select the Subscription${reset}
 az account set --subscription $SUBSCRIPTION
+ExitIfNotSuccessful
 az account show
 
-# Delete the Resource Group
-echo -e ${cyan}Delete the Resource Group${reset}
-az group delete --name $RESOURCE_GROUP --yes --no-wait
+# Delete the Resource Group, might require multiple loops to be able to complete
+echo -e ${cyan}Delete the Resource Group, might require multiple loops to be able to complete${reset}
+while : ; do
+    az group delete --name $RESOURCE_GROUP --yes #--no-wait
+    [ $? -eq 0 ] && break;
+    echo -e ${yellow}Retrying...${reset}
+done
