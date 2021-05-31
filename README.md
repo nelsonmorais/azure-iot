@@ -1,31 +1,54 @@
-# Azure IIoT Sandbox
+# Project Title
 
-## Description
-The purpose of this project is to create a Sandbox of an Industrial IoT environment by creating a set of Azure resources for that purpose.
+The purpose of this project is to setup an Azure resource group with a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
 
-The repository contains a set of bash (.azcli) scripts that, once executed, will create a set of Azure IoT related resources.
+## Getting Started
 
-Once the execution of the scripts ends, an Azure IoT Edge simulator device sending simulated telemetry to an IoT Hub should be up and running.
+For a quick start, clone this repository and run the `setup-bash-files.sh` follwed by the `create-all.azcli` bash scripts. These scripts were created on Windows running Ubuntu 20.04 on WSL2, but other Linux based platforms should work just fine.
 
-The simulated data can be seen in two places:
+On the first run of the script above, you'll be asked to create the `variables-local-only.azcli` script file with the instructions provided. Follow the instructions and execute the `create-all.azcli` script again.
+
+To clean up all the resources execute the `remove-all.azcli` script (see notes below for more details).
+
+On the sections below there's a description for each file present on the repository.
+
+### Prerequisites
+
+- An Azure Subscription where to run this script
+- Script execution on a linux based shell (e.g. Ubuntu on WSL2)
+- jq installed (apt-get install jq)
+- openssl installed
+- Docker (to pull/push images to ACR, see script `acr-push-images.azcli`)
+- Azure CLI
+- Azure CLI extension(s) needed:
+  - azure-iot
+  - timeseriesinsights
+
+### Installing
+
+The repository contains a set of bash (.azcli) scripts that, once executed, will create an Azure resource group to setup a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
+
+Run the `setup-bash-files.sh` to give execution permission on the `*.azcli` files and then execute the `create-all.azcli` bash script to create all the resources in Azure.
+
+On the first execution of the `create-all.azcli` the script will check if the `variables-local-only.azcli` is present, if not the script will stop and provide the instructions to setup this file. Create the file with the instructions provided and execute the script again.
+
+Once the execution of the scripts ends, an Azure IoT Edge device simulator should be sending simulated telemetry data to an IoT Hub and this data should be visible on the following places:
 - The Storage Account to where the IoT Hub message rounting is configured to keep data for cold storage analysis
 - In Time Series Insights as long as the IoT Hub has the network configured to allow public connections (see note below).
 
-__Note 1__:
-- TSI ingest doesn't work if Public traffic is disabled on the IoT Hub and on the TSI Storage Account, for more info see: https://docs.microsoft.com/en-us/azure/time-series-insights/concepts-streaming-ingestion-event-sources#create-or-edit-event-sources
-- To have TSI data ingested, the IoT Hub and the TSI Storage Account network configurations need to allow Public connectivity, this is not the case if the `disable-public-traffic.azcli` is executed, which is the default case on the `create-all.azcli` script
-- [TODO:] A possible workaroud is to use and Event Hub between IoT Hub and TSI, but this also requires the Event Hub and the TSI Storage Account to allow Public connectivity
-- [TODO:] An alternative to TSI would be Azure Data Explorer
+> **Note 1**:
+> - TSI ingest doesn't work if Public traffic is disabled on the IoT Hub and on the TSI Storage Account, for more info see: https://docs.microsoft.com/en-us/azure/time-series-insights/concepts-streaming-ingestion-event-sources#create-or-edit-event-sources
+> - To have TSI data ingested, the IoT Hub and the TSI Storage Account network configurations need to allow Public connectivity, this is not the case if the `disable-public-traffic.azcli` is executed, which is the default case on the `create-all.azcli` script
+> - [TODO]: A possible workaroud is to use and Event Hub between IoT Hub and TSI, but this also requires the Event Hub and the TSI Storage Account to allow Public connectivity
+> - [TODO]: An alternative to TSI would be Azure Data Explorer
 
-__Note 2__:
-- If public network access is not allowed on the Storage Accounts (default case on the `create-all.azcli`), then a network firewall rule needs to be added with the local machine public IP address to allow access to the `cold-storage` container of the IoT Hub Storage Account and to the TSI Storgae Account environment container, to be able to see the blobs on these containers
-
-_This is a work in progress and the list of created resources will be adjusted over time._
-
-## Resources diagram
-[TODO]
+> **Note 2**:
+> - If public network access is not allowed on the Storage Accounts (default case on the `create-all.azcli`), then a network firewall rule needs to be added with the local machine public IP address to allow access to the `cold-storage` container of the IoT Hub Storage Account and to the TSI Storgae Account environment container, to be able to see the blobs on these containers
 
 ## What will be created
+
+![Resources diagram](./resources/Resources-diagram.png)
+
 The scripts will create the following resources:
 - 1 Resource group (resource group where all the resources will be created)
 - 2 VNets (IT and OT see details below)
@@ -51,24 +74,13 @@ The scripts will create the following resources:
 - Private DNS Zone A records for all resources with an IP linked to the NIC of the Private Endpoints
 - 1 Ubuntu 18.04 Virtual Machine (the IoT Edge simulated device)
 - Time Series Insights
-- [TODO]: Azure Streaming Analytics Cluster
 
-## Pre-requisites:
-- An Azure Subscription where to run this script
-- Script execution on a linux based shell (e.g. Ubuntu on WSL2)
-- jq installed (apt-get install jq)
-- openssl installed
-- Docker (if pull/push images to ACR, see script `acr-push-images.azcli`)
-- AzCli extension(s) needed:
-  - azure-iot
-  - timeseriesinsights
-
-## How to use the scripts
-Open a bash shell, clone this repo and create the `variables-local-only.azcli` (see details below), execute the `setup-bash-files.sh` and then the `create-all.azcli` to create all the resources.
+## More details on how to use the scripts
+Create the `variables-local-only.azcli` (see details below), execute the `setup-bash-files.sh` and then the `create-all.azcli` to create all the resources.
 
 Comment parts of the `create-all.azcli` to avoid the creation of all the resources mentioned above. Note that further adjustments might be needed to other scripts to ensure that all dependincies are managed in this case.
 
-The `variables.azcli` is where all the variables are defined. Among others this script specifies the names of all the resources that will be created and these can be adjusted as needed. 
+The `variables.azcli` is where all the variables are defined. Among others this script specifies the names of all the resources that will be created and these can be adjusted if needed.
 
 To remove all resources execute the `remove-all.azcli`, see details below regarding resources that might need to be deleted manually.
 
@@ -109,6 +121,9 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `reference-files\`
   - `install-iotedg.sh`: Script with the basic steps needed to install Azure IoT Edge daemon on a Lunix based device
   - `sample-config.yaml`: Sample file of the IoTEdge device configuration
+- `resources\`
+  - `Resources-diagram.vsdx`: Viso with the resources diagram
+  - `Resources-diagram.png`: Image with the resources diagram to be used on this file
 
 ## VNets configuration
 VNet: IT - Informational Technology
@@ -119,7 +134,6 @@ VNet: IT - Informational Technology
     - DPS: 1 Private Endpoint, 1 NIC, 1 IP Address
     - IoT Hub: 1 Private Endpoint, 1 NIC, 2 IP Addresses
     - ACR: 1 Private Endpoint, 1 NIC, 2 IP Addresses
-    - [TODO]: Azure Stream Analytics cluster
 - Subnet: AzureBastionSubnet
   - Address space: 10.1.0.0/27
   - Resources: Bastion
@@ -133,8 +147,5 @@ VNet: OT - Operational Technology
 Peered networks:
 - IT <-> OT
 
-# ==> TODO <==
-  - Check if both the IT and OT VNets need to be linked to the Private DNS Zones
-- [Optional] Azure Streaming Analytics cluster to generate some sort of alert
-- [Optional] LogAnalytics and have diags configured on all servicies to use it
-- [Optional] More than one VM as Edge device, eventually on a second OT VNet, to get simulation data from multiple devices
+## Known issues
+[TODO:] Due to a bug on the Azure CLI for DPS (see: https://github.com/Azure/azure-cli/issues/18184), as of 2021/06/07 it's not possible to disable the public traffic on DPS using the Azure CLI, so this needs to be done via the Azure Portal.
