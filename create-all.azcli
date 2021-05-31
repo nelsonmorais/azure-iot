@@ -4,8 +4,8 @@
 # Main script to create a Sandbox of a very basic and hypotetical Industrial IoT envionment
 #
 
-# Load the variables
-. variables.azcli
+# Load the colors
+. colors.azcli
 
 # Load global functions
 . bash-functions.azcli
@@ -14,6 +14,9 @@
 . variables-local-only.azcli
 ExitIfNoVariablesLocalOnlyFile
 EchoLocalVariables
+
+# Load the variables
+. variables.azcli
 
 # Due to a bug on the Linux Kernel used by WSL2 (as of 2021-04-15), the date stops updating if the PC hibernates/sleeps, 
 #  the command below forces the date to update and avoids authentication errors on some az cli commands

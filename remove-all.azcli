@@ -7,8 +7,8 @@
 # Login to Azure
 #az login
 
-# Load the variables
-. variables.azcli
+# Load the colors
+. colors.azcli
 
 # Load global functions
 . bash-functions.azcli
@@ -17,6 +17,9 @@
 . variables-local-only.azcli
 ExitIfNoVariablesLocalOnlyFile
 EchoLocalVariables
+
+# Load the variables
+. variables.azcli
 
 # Select the Subscription
 echo -e ${cyan}Select the Subscription${reset}

@@ -9,6 +9,8 @@ ExitIfNoVariablesLocalOnlyFile() {
         echo -e ${red}'Create a file named variables-local-only.azcli with the following content (replacing the values between <...>):'${reset}
         echo -e ${cyan}'#!/bin/bash'${reset}
         echo -e ${cyan}'SUBSCRIPTION=<AZURE_SUBCRIPTION_ID_HERE>'${reset}
+        echo -e ${cyan}'RESOURCE_GROUP=<THE_RESOURCE_GROUP_NAME_HERE>'${reset}
+        echo -e ${cyan}'PREFIX=<THE_PREFIX_FOR_THE_RESOURCES_HERE__MAX_IS_11_CHARS>'${reset}
         echo -e ${cyan}'VM_EDGE_ADMIN_USER=<VM_EDGE_ADMIN_USER_NAME_HERE>'${reset}
         echo -e ${cyan}'VM_EDGE_ADMIN_PASS=<VM_EDGE_ADMIN_USER_PASS_HERE>'${reset}
         echo -e ${red}Exiting...${reset}
@@ -28,6 +30,8 @@ ExitIfNotSuccessful() {
 EchoLocalVariables() {
     echo -e ${green}Local variables in use:${blue}
     echo -e SUBSCRIPTION=$SUBSCRIPTION
+    echo -e RESOURCE_GROUP=$RESOURCE_GROUP
+    echo -e PREFIX=$PREFIX
     echo -e VM_EDGE_ADMIN_USER=$VM_EDGE_ADMIN_USER
     echo -e VM_EDGE_ADMIN_PASS=$VM_EDGE_ADMIN_PASS
     echo -e ${reset}    

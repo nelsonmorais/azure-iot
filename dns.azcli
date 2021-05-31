@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Load the variables
-. variables.azcli
+# Load the colors
+. colors.azcli
 
 # Load global functions
 . bash-functions.azcli
@@ -10,6 +10,9 @@
 . variables-local-only.azcli
 ExitIfNoVariablesLocalOnlyFile
 EchoLocalVariables
+
+# Load the variables
+. variables.azcli
 
 # Private DNS configuration
 echo -e ${green}Private DNS configuration${reset}

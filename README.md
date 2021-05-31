@@ -87,6 +87,7 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 ## Script files details
 - `create-all.zcli`: Creates all resources by invoking the individual scripts per resource type
 - `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has it might be present on the Subscription due to other needs, remove it manually if there're no other identified dependencies
+- `colors.azcli`: Defines some bash colors to be used on the scripts
 - `bash-functions.azcli`: Utility functions used by the scripts
 - `variables-local-only.azcli`: This file is excluded from git and needs to be created to define the following variables
   - SUBSCRIPTION
