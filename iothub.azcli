@@ -113,10 +113,10 @@ az role assignment create \
     --scope $iothub_storage_resource_id
 ExitIfNotSuccessful
 
-# Get the storage Account connection string
-echo -e ${cyan}Get the storage Account connection string${reset}
-connection_string=$(GetStorageConnectionString $IOTHUB_STORAGE_ACCOUNT_NAME)
-ExitIfNotSuccessful
+# Get the storage Account connection string (only needed if the auth-type below is 'keybase')
+# echo -e ${cyan}Get the storage Account connection string${reset}
+# connection_string=$(GetStorageConnectionString $IOTHUB_STORAGE_ACCOUNT_NAME)
+# ExitIfNotSuccessful
 
 # Create the Routing Endpoint for the storage Account
 echo -e ${cyan}Create the Routing Endpoint for the storage Account${reset}
@@ -130,8 +130,8 @@ az iot hub routing-endpoint create \
     --auth-type $IOTHUB_ROUTING_AUTH_TYPE \
     --batch-frequency $IOTHUB_ROUTING_BATCH_FREQUENCY \
     --container-name $IOTHUB_ROUTING_CONTAINER_NAME \
-    --encoding $IOTHUB_ROUTING_ENCODING \
-    --connection-string $connection_string
+    --encoding $IOTHUB_ROUTING_ENCODING #\
+    #--connection-string $connection_string     # Set it only if the auth-type is 'keybase'
     # [--file-name-format] # The file name format must contain {iothub}, {partition}, {YYYY}, {MM}, {DD}, {HH} and {mm} fields. All parameters are mandatory but can be reordered with or without delimiters.  Default: {iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}
 ExitIfNotSuccessful
 

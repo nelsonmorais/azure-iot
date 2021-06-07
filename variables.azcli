@@ -76,7 +76,7 @@ IOTHUB_STORAGE_CONTAINER_AUTH_MODE=login
 
 IOTHUB_ROUTING_ENDPOINT_NAME=cold-storage-container
 IOTHUB_ROUTING_ENDPOINT_TYPE=azurestoragecontainer
-IOTHUB_ROUTING_AUTH_TYPE=identitybased  # Note that 'keybased' can also be used if private connectivity is not configured
+IOTHUB_ROUTING_AUTH_TYPE=identitybased  # Note that 'keybased' can also be used if private connectivity is not configured, in this case the connection string needs to be provided
 IOTHUB_ROUTING_BATCH_FREQUENCY=60       # Give the minimum batch frequency to see messages quickly on thet cold storage (normally this number is higher, default is 300)
 IOTHUB_ROUTING_CONTAINER_NAME=cold-storage
 IOTHUB_ROUTING_ENCODING=json
