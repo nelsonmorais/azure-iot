@@ -149,4 +149,6 @@ Peered networks:
 - IT <-> OT
 
 ## Known issues
-[TODO:] Due to a bug on the Azure CLI for DPS (see: https://github.com/Azure/azure-cli/issues/18184), as of 2021/06/07 it's not possible to disable the public traffic on DPS using the Azure CLI, so this needs to be done via the Azure Portal.
+- [TODO:] Due to a bug on the Azure CLI for DPS (see: https://github.com/Azure/azure-cli/issues/18184), as of 2021/06/07 it's not possible to disable the public traffic on DPS using the Azure CLI, so this needs to be done via the Azure Portal.
+
+- [TODO]: Due to a bug on the Linux Kernel used by WSL2 (as of 2021/06/07) which causes the date/time to update if the PC hibernates/sleeps, the command `sudo hwclock -s` forces the date/time to update and avoids authentication errors on some az cli commands. Because of this issue this command is called on the `create-all.azcli` to prevent authentication issues. See reported issue on GitHub: https://github.com/microsoft/WSL/issues/5324
