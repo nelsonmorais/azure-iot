@@ -26,6 +26,10 @@ On the sections below there's a description for each file present on the reposit
 
 ### Installing
 
+Ensure you have installed all the prerequisites that require installs.
+
+### Deploying
+
 The repository contains a set of bash (.azcli) scripts that, once executed, will create an Azure resource group to setup a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
 
 Run the `setup-bash-files.sh` to give execution permission on the `*.azcli` files and then execute the `create-all.azcli` bash script to create all the resources in Azure.
