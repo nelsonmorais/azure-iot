@@ -1,3 +1,8 @@
+.DS_Store
+
+*.code-workspace
+.vscode
+
 variables-local-only.azcli
 edge-deployment-manifests/*.json
 *.log
