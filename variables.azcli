@@ -77,9 +77,11 @@ IOTHUB_STORAGE_CONTAINER_AUTH_MODE=login
 IOTHUB_ROUTING_ENDPOINT_NAME=cold-storage-container
 IOTHUB_ROUTING_ENDPOINT_TYPE=azurestoragecontainer
 IOTHUB_ROUTING_AUTH_TYPE=identitybased  # Note that 'keybased' can also be used if private connectivity is not configured, in this case the connection string needs to be provided
-IOTHUB_ROUTING_BATCH_FREQUENCY=60       # Give the minimum batch frequency to see messages quickly on thet cold storage (normally this number is higher, default is 300)
+IOTHUB_ROUTING_BATCH_FREQUENCY=60       # Give the minimum batch frequency to see messages quickly on the cold storage (normally this number is higher, default is 300)
 IOTHUB_ROUTING_CONTAINER_NAME=cold-storage
 IOTHUB_ROUTING_ENCODING=json
+IOTHUB_ROUTING_ENDPOINT_URI=https://${IOTHUB_STORAGE_ACCOUNT_NAME}.${DNS_ZONE_BLOB_CORE_WINDOWS}
+IOTHUB_ROUTING_ENTITY_PATH=$IOTHUB_ROUTING_CONTAINER_NAME
 
 IOTHUB_ROUTE_NAME=device-messages-to-cold-storage
 IOTHUB_ROUTE_SOURCE=devicemessages
@@ -207,6 +209,8 @@ echo -e IOTHUB_ROUTING_ENDPOINT_TYPE=$IOTHUB_ROUTING_ENDPOINT_TYPE
 echo -e IOTHUB_ROUTING_AUTH_TYPE=$IOTHUB_ROUTING_AUTH_TYPE
 echo -e IOTHUB_ROUTING_CONTAINER_NAME=$IOTHUB_ROUTING_CONTAINER_NAME
 echo -e IOTHUB_ROUTING_ENCODING=$IOTHUB_ROUTING_ENCODING
+echo -e IOTHUB_ROUTING_ENDPOINT_URI=$IOTHUB_ROUTING_ENDPOINT_URI
+echo -e IOTHUB_ROUTING_ENTITY_PATH=$IOTHUB_ROUTING_ENTITY_PATH
 
 echo -e IOTHUB_ROUTE_NAME=$IOTHUB_ROUTE_NAME
 echo -e IOTHUB_ROUTE_SOURCE=$IOTHUB_ROUTE_SOURCE

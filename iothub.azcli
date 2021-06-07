@@ -118,22 +118,29 @@ ExitIfNotSuccessful
 # connection_string=$(GetStorageConnectionString $IOTHUB_STORAGE_ACCOUNT_NAME)
 # ExitIfNotSuccessful
 
-# Create the Routing Endpoint for the storage Account
-echo -e ${cyan}Create the Routing Endpoint for the storage Account${reset}
-az iot hub routing-endpoint create \
-    --endpoint-subscription-id $SUBSCRIPTION \
-    --resource-group $RESOURCE_GROUP \
-    --hub-name $IOTHUB_NAME \
-    --endpoint-resource-group $RESOURCE_GROUP \
-    --endpoint-name $IOTHUB_ROUTING_ENDPOINT_NAME \
-    --endpoint-type $IOTHUB_ROUTING_ENDPOINT_TYPE \
-    --auth-type $IOTHUB_ROUTING_AUTH_TYPE \
-    --batch-frequency $IOTHUB_ROUTING_BATCH_FREQUENCY \
-    --container-name $IOTHUB_ROUTING_CONTAINER_NAME \
-    --encoding $IOTHUB_ROUTING_ENCODING #\
-    #--connection-string $connection_string     # Set it only if the auth-type is 'keybase'
-    # [--file-name-format] # The file name format must contain {iothub}, {partition}, {YYYY}, {MM}, {DD}, {HH} and {mm} fields. All parameters are mandatory but can be reordered with or without delimiters.  Default: {iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}
-ExitIfNotSuccessful
+# Create the Routing Endpoint for the storage Account, might require multiple loops if MSI permissions are still being applied
+echo -e ${cyan}Create the Routing Endpoint for the storage Account, might require multiple loops if MSI permissions are still being applied${reset}
+while : ; do
+    az iot hub routing-endpoint create \
+        --endpoint-subscription-id $SUBSCRIPTION \
+        --resource-group $RESOURCE_GROUP \
+        --hub-name $IOTHUB_NAME \
+        --endpoint-resource-group $RESOURCE_GROUP \
+        --endpoint-name $IOTHUB_ROUTING_ENDPOINT_NAME \
+        --endpoint-type $IOTHUB_ROUTING_ENDPOINT_TYPE \
+        --auth-type $IOTHUB_ROUTING_AUTH_TYPE \
+        --batch-frequency $IOTHUB_ROUTING_BATCH_FREQUENCY \
+        --container-name $IOTHUB_ROUTING_CONTAINER_NAME \
+        --encoding $IOTHUB_ROUTING_ENCODING \
+        --entity-path $IOTHUB_ROUTING_ENTITY_PATH \
+        --endpoint-uri $IOTHUB_ROUTING_ENDPOINT_URI # Required (inluding the entity-path above) if auth-type is 'identitybased'
+        #--connection-string $connection_string     # Required if auth-type is 'keybased'
+        # [--file-name-format] # The file name format must contain {iothub}, {partition}, {YYYY}, {MM}, {DD}, {HH} and {mm} fields. All parameters are mandatory but can be reordered with or without delimiters.  Default: {iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}
+    [ $? -eq 0 ] && break;
+    echo -e ${yellow}Wait 20s before retry...${reset}
+    sleep 20s
+    echo -e ${yellow}Retrying...${reset}
+done
 
 # Create the Route to the storage Account Routing Endpoint
 echo -e ${cyan}Create the Route to the storage Account Routing Endpoint${reset}
