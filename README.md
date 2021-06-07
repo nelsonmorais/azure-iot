@@ -1,4 +1,4 @@
-# Project Title
+# Azure IIoT Sandbox
 
 The purpose of this project is to setup an Azure resource group with a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
 
