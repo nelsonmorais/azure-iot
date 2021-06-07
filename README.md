@@ -91,11 +91,13 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `bash-functions.azcli`: Utility functions used by the scripts
 - `variables-local-only.azcli`: This file is excluded from git and needs to be created to define the following variables
   - SUBSCRIPTION
+  - RESOURCE_GROUP
+  - PREFIX
   - VM_EDGE_ADMIN_USER
   - VM_EDGE_ADMIN_PASS
 - `variables.azcli`: All the variables needed to run this script, values can be adjusted as needed on this file
 - `vnets.azcli`: Creates the VNets (see more info below)
-- `bastion.azcli`: Creates the Bastion to provide access to the VM(s)
+- `bastion.azcli`: Creates the Bastion to provide access to the IoT Edge simulator VM. If access is not needed the cal to this script can be commented out on the `create-all.azcli`
 - `acr.azcli`: Creates the Azure Container Registry
 - `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
 - `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint

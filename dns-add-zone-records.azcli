@@ -14,8 +14,8 @@ EchoLocalVariables
 # Load the variables
 . variables.azcli
 
-# Add Private DNS Zone records for ACR, IoT Hub, DPS and 2 Storage accounts
-echo -e ${green}Add Private DNS Zone records for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
+# Add Private DNS Zones for ACR, IoT Hub, DPS and 2 Storage accounts
+echo -e ${green}Add Private DNS Zones for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
 
 # Get the Zone names for ACR, IoT Hub, DPS and 2 Storage accounts
 echo -e ${green}Get the Zone names for ACR, IoT Hub, DPS and 2 Storage accounts${reset}
@@ -46,8 +46,8 @@ echo -e ${blue}$zone_name_dps : $ip_dps${reset}
 echo -e ${blue}$zone_name_storage_iothub : $ip_iothub_storage_blob${reset}
 echo -e ${blue}$zone_name_storage_tsi : $ip_tsi_storage_blob${reset}
 
-# Add the Private DNS Zone A records for ACR & ACR data, IoT Hub, DPS, 2 Storage accounts
-echo -e ${green}Add the Private DNS Zone A records for ACR & ACR data, IoT Hub, DPS, 2 Storage accounts${reset}
+# Add the Private DNS Zone A records for ACR, ACR data, IoT Hub, DPS, 2 Storage accounts
+echo -e ${green}Add the Private DNS Zone A records for ACR, ACR data, IoT Hub, DPS, 2 Storage accounts${reset}
 az network private-dns record-set a add-record \
     --resource-group $RESOURCE_GROUP \
     --zone-name $DNS_ZONE_PRIVATELINK_AZURECR \
