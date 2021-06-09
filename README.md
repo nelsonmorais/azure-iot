@@ -1,10 +1,10 @@
 # Azure IIoT Sandbox
 
-The purpose of this project is to setup an Azure resource group with a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
+The purpose of this project is to setup an Azure resource group with a Sandbox environment of a simple Industrial IoT infrastructure from where a simulated device will send some telemetry data.
 
 ## Getting Started
 
-For a quick start, clone this repository and run the `setup-bash-files.sh` follwed by the `create-all.azcli` bash scripts. These scripts were created on Windows running Ubuntu 20.04 on WSL2, but other Linux based platforms should work just fine.
+For a quick start, clone this repository and run the `setup-bash-files.sh` followed by the `create-all.azcli` bash scripts. These scripts were created on Windows running Ubuntu 20.04 on WSL2, but other Linux based platforms should work just fine.
 
 On the first run of the script above, you'll be asked to create the `variables-local-only.azcli` script file with the instructions provided. Follow the instructions and execute the `create-all.azcli` script again.
 
@@ -30,24 +30,24 @@ Ensure you have installed all the prerequisites that require installs.
 
 ### Deploying
 
-The repository contains a set of bash (.azcli) scripts that, once executed, will create an Azure resource group to setup a Sandbox environment of a simple Industrial IoT infrastrcuture from where a simulated device will send some telemetry data.
+The repository contains a set of bash (.azcli) scripts that, once executed, will create an Azure resource group to setup a Sandbox environment of a simple Industrial IoT infrastructure from where a simulated device will send some telemetry data.
 
 Run the `setup-bash-files.sh` to give execution permission on the `*.azcli` files and then execute the `create-all.azcli` bash script to create all the resources in Azure.
 
 On the first execution of the `create-all.azcli` the script will check if the `variables-local-only.azcli` is present, if not the script will stop and provide the instructions to setup this file. Create the file with the instructions provided and execute the script again.
 
 Once the execution of the scripts ends, an Azure IoT Edge device simulator should be sending simulated telemetry data to an IoT Hub and this data should be visible on the following places:
-- The Storage Account to where the IoT Hub message rounting is configured to keep data for cold storage analysis
+- The Storage Account to where the IoT Hub message routing is configured to keep data for cold storage analysis
 - In Time Series Insights as long as the IoT Hub has the network configured to allow public connections (see note below).
 
 > **Note 1**:
 > - TSI ingest doesn't work if Public traffic is disabled on the IoT Hub and on the TSI Storage Account, for more info see: https://docs.microsoft.com/en-us/azure/time-series-insights/concepts-streaming-ingestion-event-sources#create-or-edit-event-sources
 > - To have TSI data ingested, the IoT Hub and the TSI Storage Account network configurations need to allow Public connectivity, this is not the case if the `disable-public-traffic.azcli` is executed, which is the default case on the `create-all.azcli` script
-> - [TODO]: A possible workaroud is to use and Event Hub between IoT Hub and TSI, but this also requires the Event Hub and the TSI Storage Account to allow Public connectivity
+> - [TODO]: A possible workaround is to use and Event Hub between IoT Hub and TSI, but this also requires the Event Hub and the TSI Storage Account to allow Public connectivity
 > - [TODO]: An alternative to TSI would be Azure Data Explorer
 
 > **Note 2**:
-> - If public network access is not allowed on the Storage Accounts (default case on the `create-all.azcli`), then a network firewall rule needs to be added with the local machine public IP address to allow access to the `cold-storage` container of the IoT Hub Storage Account and to the TSI Storgae Account environment container, to be able to see the blobs on these containers
+> - If public network access is not allowed on the Storage Accounts (default case on the `create-all.azcli`), then a network firewall rule needs to be added with the local machine public IP address to allow access to the `cold-storage` container of the IoT Hub Storage Account and to the TSI Storage Account environment container, to be able to see the blobs on these containers
 
 ## What will be created
 
@@ -82,7 +82,7 @@ The scripts will create the following resources:
 ## More details on how to use the scripts
 Create the `variables-local-only.azcli` (see details below), execute the `setup-bash-files.sh` and then the `create-all.azcli` to create all the resources.
 
-Comment parts of the `create-all.azcli` to avoid the creation of all the resources mentioned above. Note that further adjustments might be needed to other scripts to ensure that all dependincies are managed in this case.
+Comment parts of the `create-all.azcli` to avoid the creation of all the resources mentioned above. Note that further adjustments might be needed to other scripts to ensure that all dependencies are managed in this case.
 
 The `variables.azcli` is where all the variables are defined. Among others this script specifies the names of all the resources that will be created and these can be adjusted if needed.
 
@@ -90,7 +90,7 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 
 ## Script files details
 - `create-all.zcli`: Creates all resources by invoking the individual scripts per resource type
-- `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has it might be present on the Subscription due to other needs, remove it manually if there're no other identified dependencies
+- `remove-all`: Removes all created resources by deleting the resource group where the resources where created. Note that the `NetworkWatcherRG` is not removed has it might be present on the Subscription due to other needs, remove it manually if there are no other identified dependencies
 - `colors.azcli`: Defines some bash colors to be used on the scripts
 - `bash-functions.azcli`: Utility functions used by the scripts
 - `variables-local-only.azcli`: This file is excluded from git and needs to be created to define the following variables
@@ -103,14 +103,14 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
 - `vnets.azcli`: Creates the VNets (see more info below)
 - `bastion.azcli`: Creates the Bastion to provide access to the IoT Edge simulator VM. If access is not needed the cal to this script can be commented out on the `create-all.azcli`
 - `acr.azcli`: Creates the Azure Container Registry
-- `acr-push-images`: Pulls / Tag / Pushes the docker images from public registeries to the ACR created here, the images are used by the IoT Edge simulator device
+- `acr-push-images`: Pulls / Tag / Pushes the docker images from public registries to the ACR created here, the images are used by the IoT Edge simulator device
 - `iothub.azcli`: Creates the Azure IoT Hub, configures the Edge deployments of the system and simulated temperature modules, and configures custom routes to a storage account and to the built-in events endpoint
 - `dps.azcli`: Creates the Azure Device Provisioning Service, configures the linked Iot Hub and sets up an Enrollment Group
 - `dns.azcli`: Creates the Private DNS Zones and links them to the VNets
 - `vnets-create-private-endpoints.azcli`: Creates Private Endpoints for ACR, IoT Hub, DPS and Storage Accounts
 - `dns-add-zone-records.azcli`: Adds private DNS Zones A records
 - `disable-public-traffic.azcli`: Disables public access for ACR, IoT Hub, ([TODO:][due to az cli BUG] DPS) and Storage Accounts
-- `tsi.azcli`: Creates the Time Series Insigths, TSI storage account, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
+- `tsi.azcli`: Creates the Time Series Insights, TSI storage account, configures the IoT Hub consumer group for TSI and adds the IoT Hub as an event source for TSI
 - `vm-edge-simulator.azcli`: Creates the VM to simulate the IoT Edge device
 
 ## Other files details
@@ -126,10 +126,10 @@ To remove all resources execute the `remove-all.azcli`, see details below regard
     - Note that the module was configured to send an unlimited number of messages by setting the environment variable MessageCount = -1 (see: https://github.com/Azure/iotedge/blob/027a509549a248647ed41ca7fe1dc508771c8123/edge-modules/SimulatedTemperatureSensor/src/Program.cs)
   - `manifest-simulated-temperature.json`: Generated file from the manifest-simulated-temperature.template, can be safely deleted and is excluded from git to avoid commiting any sensible information
 - `reference-files\`
-  - `install-iotedg.sh`: Script with the basic steps needed to install Azure IoT Edge daemon on a Lunix based device
+  - `install-iotedg.sh`: Script with the basic steps needed to install Azure IoT Edge daemon on a Linux based device
   - `sample-config.yaml`: Sample file of the IoTEdge device configuration
 - `resources\`
-  - `Resources-diagram.vsdx`: Viso with the resources diagram
+  - `Resources-diagram.vsdx`: Visio with the resources diagram
   - `Resources-diagram.png`: Image with the resources diagram to be used on this file
 
 ## VNets configuration
