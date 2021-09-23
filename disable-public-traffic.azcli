@@ -49,11 +49,10 @@ az storage account network-rule add \
 az storage account update \
     --resource-group $RESOURCE_GROUP \
     --name $TSI_STORAGE_ACCOUNT_NAME \
-    --default-action Deny #\
-# TODO: ==> AZ CLI BUG: `az iot hub dps update` fails, see: https://github.com/Azure/azure-cli/issues/18184
-# && \
-# az iot dps update \
-# --resource-group $RESOURCE_GROUP \
-# --name $DPS_NAME \
-# --set properties.publicNetworkAccess="Disabled"
+    --default-action Deny \
+&& \
+az iot dps update \
+    --resource-group $RESOURCE_GROUP \
+    --name $DPS_NAME \
+    --set properties.publicNetworkAccess="Disabled"
 ExitIfNotSuccessful
